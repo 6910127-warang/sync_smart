@@ -18,12 +18,16 @@
 
 **วิธีสร้าง/แก้ไข requirement ใหม่:** ใช้ skill `/new-requirement` (`.claude/skills/new-requirement/`) ซึ่งจะส่งต่อให้ subagent `requirement-writer` (`.claude/agents/requirement-writer.md`) เป็นผู้สัมภาษณ์ผู้ใช้ (ถามคำถามพร้อมตัวเลือกอย่างน้อย 3 แนวทางเสมอ), เขียน spec, อัปเดต backlog และ log ให้ครบตาม convention ด้านล่าง — ใช้ workflow นี้แทนการแก้ไฟล์เองตรงๆ ทุกครั้งที่มี raw requirement ใหม่จากผู้ใช้
 
-**วิธีตรวจสอบว่า backlog ตรงกับ spec หรือไม่ (up to date):** ใช้ skill `/check-backlog-sync` (`.claude/skills/check-backlog-sync/`) ซึ่งจะส่งต่อให้ subagent `backlog-sync-checker` (`.claude/agents/backlog-sync-checker.md`) ตรวจสอบทุกไฟล์ spec เทียบกับ `01-requirements/backlog.md`, แก้ไขจุดที่ชัดเจนให้อัตโนมัติ, และถามผู้ใช้เมื่อพบจุดที่ต้องตัดสินใจ — เรียกใช้เป็นระยะหลังแก้ spec หลายจุด หรือเมื่อสงสัยว่า backlog อาจไม่ตรงกับ spec แล้ว
+**วิธีตรวจสอบว่าทั้ง chain sync กันหรือไม่ (Requirement → Backlog → Feature List → User Journey):** ใช้ skill `/check-backlog-sync` (`.claude/skills/check-backlog-sync/`) — เรียก 2 subagent ต่อกันเป็นลำดับ: (1) `backlog-sync-checker` (`.claude/agents/backlog-sync-checker.md`) ตรวจสอบทุกไฟล์ spec เทียบกับ `01-requirements/backlog.md` ก่อน แก้ไขจุดที่ชัดเจนให้อัตโนมัติและถามผู้ใช้เมื่อพบจุดที่ต้องตัดสินใจ แล้ว (2) `feature-journey-builder` (`.claude/agents/feature-journey-builder.md`) ตรวจ `02-feature-list.md` และ `03-user-journey/*.md` เทียบกับ `backlog.md` เวอร์ชันล่าสุด (หลังขั้นที่ 1 แก้ไปแล้ว) — ทำให้แก้ spec/backlog/feature-list/journey ที่จุดไหนก็ตาม แล้ว sync ไล่ลงไปจนถึง user journey ได้ในคำสั่งเดียว เรียกใช้เป็นระยะหลังแก้ spec/backlog หลายจุด หรือเมื่อสงสัยว่าจุดไหนใน chain นี้อาจไม่ตรงกันแล้ว
+
+**วิธีสร้าง/อัปเดตเฉพาะ Feature List และ User Journey (ไม่ต้องตรวจ spec↔backlog ใหม่):** ใช้ skill `/build-feature-journey` (`.claude/skills/build-feature-journey/`) ซึ่งจะส่งต่อให้ subagent `feature-journey-builder` โดยตรง — สร้าง `01-requirements/02-feature-list.md` (จัดกลุ่ม backlog item เป็น Feature พร้อม MoSCoW ที่ roll-up จาก priority ของ backlog item) และ `01-requirements/03-user-journey/{role}-journey.md` (Mermaid diagram ต่อ role พร้อมคำอธิบาย mapping กลับไปยัง FR/US/BL-ID) ถ้ายังไม่มีไฟล์จะสร้างใหม่ ถ้ามีอยู่แล้วจะตรวจ+แก้ส่วนที่ไม่ตรงกับ backlog ปัจจุบัน — subagent ตัวนี้ถูกเรียกโดยอัตโนมัติเป็นขั้นที่ 2 ของ `/check-backlog-sync` อยู่แล้วด้วย ใช้ `/build-feature-journey` ตรงๆ เฉพาะเมื่อต้องการรีเฟรชแค่ feature-list/journey เร็วๆ โดยไม่ต้องตรวจ spec↔backlog ใหม่ทั้งหมด
 
 ## โครงสร้างเอกสาร (Document Structure)
 
 - **`01-requirements/01-spec/{YYYYMMDD}-{RUNNING_NO}-{topic-slug}.md`** — เอกสาร requirement แยกตามหัวข้อ/Epic หนึ่งไฟล์ต่อหนึ่งเรื่อง (ไม่ใช่ไฟล์รวมเดียวเหมือนเดิม) โดย `RUNNING_NO` นับต่อเนื่องทั้งโปรเจกต์ (ไม่รีเซ็ต) และ `topic-slug` เป็น kebab-case ภาษาอังกฤษ
 - **`01-requirements/backlog.md`** — Product Backlog หลัก อ้างอิงกลับไปยัง spec แต่ละไฟล์
+- **`01-requirements/02-feature-list.md`** — Feature List (มุมมองระดับ feature ที่จัดกลุ่มมาจาก backlog item พร้อม MoSCoW roll-up) — ดูแลโดย `/build-feature-journey`, ไม่ต้องแก้มือ
+- **`01-requirements/03-user-journey/{role}-journey.md`** — User Journey แยกไฟล์ต่อ role (Mermaid diagram + คำอธิบาย mapping กลับ FR/US/BL-ID) — ดูแลโดย `/build-feature-journey`, ไม่ต้องแก้มือ
 - **`log/{YYYYMMDD}-log.md`** — บันทึกสรุปงานที่ทำในแต่ละวัน (สร้าง/แก้ spec ไหน, ถามอะไรไปบ้าง, backlog เปลี่ยนอะไร)
 
 **Spec ปัจจุบันทั้งหมด** (แตกจาก Epic ตามขอบเขต — เรียงตามความสำคัญ):
