@@ -1,0 +1,51 @@
+<!--
+  Role: เภสัชกร (pharmacist) — ผู้ตรวจสอบระดับ 2
+  Journey Step: 7 — ตรวจสอบซ้ำและยืนยัน (ขั้นตอนยืนยันก่อนบันทึกจริง)
+  FT-ID: FT-002 (อนุมัติคำขอเบิกแบบสองระดับ)
+  BL-ID: BL-004, BL-005
+  อ้างอิง: DESIGN.md §3.7/§4.3 Confirm-before-critical-action
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ยืนยันอนุมัติระดับ 2 — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+    <a class="nav-item active" href="approval-queue-level2.html">รออนุมัติระดับ 2</a>
+    <a class="nav-item" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
+    <a class="nav-item" href="audit-trail.html">Audit Trail</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <span>บทบาท: เภสัชกร — ผู้ตรวจสอบระดับ 2 (ภญ. สมหญิง ตัวอย่าง) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>คำขอเบิก REQ-2569-07-A001</h1>
+      <p>สถานะปัจจุบัน: <span class="badge badge-info">รอการอนุมัติระดับ 2</span></p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay">
+  <div class="modal">
+    <h2>ยืนยันการอนุมัติระดับ 2?</h2>
+    <p>ท่านกำลังจะยืนยันคำขอเบิก REQ-2569-07-A001 ในฐานะผู้ตรวจสอบระดับ 2 (คนละคนกับผู้อนุมัติระดับ 1) เมื่อยืนยันแล้ว สถานะคำขอจะเปลี่ยนเป็น "อนุมัติแล้ว" และระบบจะเปลี่ยนต่อเป็น "พร้อมส่งออก" โดยอัตโนมัติ (บันทึกลง Audit Trail ตาม BL-008)</p>
+    <div class="modal-actions">
+      <a class="btn btn-secondary" href="approval-review-level2.html">ยกเลิก</a>
+      <a class="btn btn-primary" href="approval-level2-approved.html">ยืนยันการอนุมัติ</a>
+    </div>
+  </div>
+</div>
+
+<div class="proto-badge">Prototype only — FT-002 (BL-004)</div>
+</body>
+</html>

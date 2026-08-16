@@ -1,0 +1,60 @@
+<!--
+  Role: ผู้ดูแลระบบ (admin)
+  Journey Step: 4 — แก้ไขข้อมูลธุรกิจ + บันทึกเหตุผลลง Audit Log (ขั้นตอนยืนยันก่อนบันทึกจริง)
+  FT-ID: FT-021 (Admin แก้ไขข้อมูลธุรกิจกรณีฉุกเฉิน)
+  BL-ID: BL-025
+  อ้างอิง AC: BL-025 Scenario 1 (แก้ไขพร้อมบันทึก audit log — happy path), Scenario 2 (ไม่ระบุเหตุผล — validation error, แสดงเป็นตัวอย่างประกอบ)
+  อ้างอิง: DESIGN.md §3.7/§4.3 Confirm-before-critical-action — การแก้ไขข้อมูลย้อนหลังโดย Admin ต้องมี confirm dialog ที่ระบุชัดว่าจะถูกบันทึก audit log
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ยืนยันแก้ไขข้อมูลฉุกเฉิน — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="rbac-user-list.html">กำหนดสิทธิ์ผู้ใช้ (RBAC)</a>
+    <a class="nav-item" href="access-log.html">System Access Log</a>
+    <a class="nav-item active" href="emergency-correction.html">แก้ไขข้อมูลฉุกเฉิน</a>
+    <a class="nav-item" href="audit-log-retention.html">Audit Trail / การเก็บรักษาข้อมูล</a>
+    <a class="nav-item" href="system-status.html">การตั้งค่าระบบ</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      <span>บทบาท: ผู้ดูแลระบบ (Admin) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>แก้ไขข้อมูลธุรกิจกรณีฉุกเฉิน</h1>
+      <p>รายการ: REQ-2569-07-A003 — ยอดคงคลังยา B ของ รพ.สต. ตัวอย่าง A</p>
+      <p class="text-secondary">ค่าปัจจุบัน: 80 หน่วย &rarr; ค่าที่ถูกต้อง: 65 หน่วย</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay">
+  <div class="modal">
+    <h2>ยืนยันการแก้ไขข้อมูลฉุกเฉิน?</h2>
+    <p>ท่านกำลังจะแก้ไขยอดคงคลังยา B ของ รพ.สต. ตัวอย่าง A จาก 80 หน่วย เป็น 65 หน่วย <strong>การแก้ไขนี้จะถูกบันทึกลง Audit Log ทันทีพร้อมเหตุผลที่ระบุ (BL-025)</strong> โดยไม่กระทบกระบวนการอนุมัติปกติของคำขอเบิก</p>
+    <div class="form-field">
+      <label for="reason">เหตุผลการแก้ไข</label>
+      <input type="text" id="reason" value="ตรวจพบยอดคงคลังคลาดเคลื่อนจากการนับสต็อกจริงประจำเดือน มิ.ย. 2569 (ตัวอย่าง)">
+    </div>
+    <p class="text-secondary" style="margin-top:0;">ตัวอย่างประกอบ (BL-025 Scenario 2 — ไม่ใช่การตรวจสอบแบบ interactive จริงในหน้านี้): หากไม่ระบุเหตุผลแล้วกดยืนยัน ระบบจะแสดงข้อความเตือนใต้ช่องนี้ดังนี้ และปฏิเสธการบันทึกจนกว่าจะระบุเหตุผล</p>
+    <p class="field-error">ตัวอย่าง: กรุณาระบุเหตุผลการแก้ไขก่อนยืนยัน — ระบบไม่อนุญาตให้แก้ไขข้อมูลฉุกเฉินโดยไม่มีเหตุผลประกอบ</p>
+    <div class="modal-actions">
+      <a class="btn btn-secondary" href="emergency-correction.html">ยกเลิก</a>
+      <a class="btn btn-primary" href="emergency-correction-saved.html">ยืนยันการแก้ไข</a>
+    </div>
+  </div>
+</div>
+
+<div class="proto-badge">Prototype only — FT-021 (BL-025)</div>
+</body>
+</html>

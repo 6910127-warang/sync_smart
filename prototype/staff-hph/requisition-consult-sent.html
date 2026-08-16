@@ -1,0 +1,50 @@
+<!--
+  Role: เจ้าหน้าที่ รพ.สต. (staff-hph)
+  Journey Step: 5 — (ทางเลือก) กด "ขอปรึกษา" แจ้งเภสัชกรผ่าน LINE OA
+  FT-ID: FT-001 (สร้างคำขอเบิกยาประจำเดือน)
+  BL-ID: BL-003
+  อ้างอิง AC: BL-003 Scenario 1 (ส่ง alert ไปยังกลุ่มเภสัชกรผ่าน LINE OA + บันทึก audit trail), Scenario 3 (ยังยืนยันคำขอต่อได้ตามปกติ)
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ส่งคำขอปรึกษาแล้ว — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="stock-dashboard.html">ภาพรวมคงคลัง</a>
+    <a class="nav-item active" href="requisition-new.html">สร้างคำขอเบิกยา</a>
+    <a class="nav-item" href="requisition-list.html">รายการคำขอเบิก</a>
+    <a class="nav-item" href="emergency-requisition.html">เบิกฉุกเฉิน</a>
+    <a class="nav-item" href="notifications.html">การแจ้งเตือน</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.สต. ตัวอย่าง A</span>
+      <span>บทบาท: เจ้าหน้าที่ รพ.สต. | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>ส่งคำขอปรึกษาแล้ว</h1>
+
+      <div class="card" style="max-width: 560px;">
+        <span class="badge badge-info">ส่งแจ้งเตือนแล้ว</span>
+        <p style="margin-top: var(--space-4);">ระบบส่งแจ้งเตือนไปยังกลุ่มเภสัชกร รพ.แม่ข่าย ผ่าน LINE Official Account เรียบร้อยแล้ว เกี่ยวกับยอดแนะนำเบิกของ <strong>ยา A</strong> ในคำขอเบิกยาประจำเดือนสิงหาคม 2569 ของหน่วยท่าน</p>
+        <p class="text-secondary">เหตุการณ์นี้ถูกบันทึกลง Audit Trail แล้ว (FT-005 / BL-008)</p>
+        <p>ท่านยังคงแก้ไขยอดคงเหลือ/ยอดแนะนำ และยืนยันคำขอเบิกต่อได้ตามปกติโดยไม่ต้องรอคำตอบจากเภสัชกรก่อน</p>
+      </div>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="requisition-new.html">กลับไปแก้ไขคำขอเบิก</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-001 (BL-003)</div>
+</body>
+</html>

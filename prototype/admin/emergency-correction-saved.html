@@ -1,0 +1,68 @@
+<!--
+  Role: ผู้ดูแลระบบ (admin)
+  Journey Step: 4 — ผลลัพธ์การแก้ไขข้อมูลธุรกิจ + บันทึกเหตุผลลง Audit Log
+  FT-ID: FT-021 (Admin แก้ไขข้อมูลธุรกิจกรณีฉุกเฉิน), FT-005 (Audit Trail การเบิก-จ่าย-อนุมัติ-รับ-ขอปรึกษา)
+  BL-ID: BL-025, BL-008
+  อ้างอิง AC: BL-025 Scenario 1 (แก้ไขพร้อมบันทึก audit log — happy path)
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>บันทึกการแก้ไขสำเร็จ — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="rbac-user-list.html">กำหนดสิทธิ์ผู้ใช้ (RBAC)</a>
+    <a class="nav-item" href="access-log.html">System Access Log</a>
+    <a class="nav-item active" href="emergency-correction.html">แก้ไขข้อมูลฉุกเฉิน</a>
+    <a class="nav-item" href="audit-log-retention.html">Audit Trail / การเก็บรักษาข้อมูล</a>
+    <a class="nav-item" href="system-status.html">การตั้งค่าระบบ</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      <span>บทบาท: ผู้ดูแลระบบ (Admin) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>บันทึกการแก้ไขสำเร็จ</h1>
+      <div class="card" style="max-width: 640px;">
+        <p><strong>REQ-2569-07-A003</strong> — ยอดคงคลังยา B ของ รพ.สต. ตัวอย่าง A</p>
+        <p>สถานะ: <span class="badge badge-success">แก้ไขสำเร็จ</span></p>
+        <p class="text-secondary">ค่าเดิม 80 หน่วย &rarr; ค่าใหม่ 65 หน่วย — บันทึกลง Audit Log ทันทีพร้อมเหตุผล (FT-021 / BL-025)</p>
+      </div>
+
+      <h2 style="margin-top: var(--space-8);">รายการล่าสุดใน Audit Log</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>วันเวลา</th>
+            <th>ผู้กระทำ</th>
+            <th>เหตุการณ์</th>
+            <th>รายละเอียด</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-alert">
+            <td>07/06/2569 10:20</td>
+            <td>admin.it.example (ผู้ดูแลระบบ)</td>
+            <td>แก้ไขข้อมูลธุรกิจกรณีฉุกเฉิน</td>
+            <td>REQ-2569-07-A003: ยอดคงคลังยา B จาก 80 เป็น 65 หน่วย — เหตุผล: "ตรวจพบยอดคงคลังคลาดเคลื่อนจากการนับสต็อกจริงประจำเดือน มิ.ย. 2569 (ตัวอย่าง)" — สร้าง entry ใหม่ ไม่แก้ไข entry เดิม</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="audit-log-retention.html">ตรวจสอบ Audit Trail + Access Log ย้อนหลัง (≥90 วัน)</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-021 (BL-025)</div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!--
+  Role: เภสัชกร (pharmacist) — ผู้อนุมัติระดับ 1
+  Journey Step: 4 — พิจารณา/ปฏิเสธคำขอ (ผลลัพธ์หลังปฏิเสธ)
+  FT-ID: FT-002 (อนุมัติคำขอเบิกแบบสองระดับ), FT-005 (Audit Trail)
+  BL-ID: BL-004, BL-008
+  อ้างอิง AC: BL-004 Scenario 2 (บันทึกสถานะ "ปฏิเสธ" พร้อมเหตุผลลง Audit Trail)
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ปฏิเสธคำขอสำเร็จ — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item active" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+    <a class="nav-item" href="approval-queue-level2.html">รออนุมัติระดับ 2</a>
+    <a class="nav-item" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
+    <a class="nav-item" href="audit-trail.html">Audit Trail</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <span>บทบาท: เภสัชกร — ผู้อนุมัติระดับ 1 (ภก. สมชาย ตัวอย่าง) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>คำขอเบิก REQ-2569-08-A001</h1>
+      <p>สถานะปัจจุบัน: <span class="badge badge-danger">ปฏิเสธ</span></p>
+
+      <div class="alert-banner alert-danger">ท่านปฏิเสธคำขอนี้เมื่อ 02/08/2569 10:25 น. พร้อมเหตุผล — ระบบแจ้งเตือนหน่วย รพ.สต. ตัวอย่าง A ให้ทราบและตรวจนับยอดใหม่ (บันทึกลง Audit Trail แล้ว ตาม BL-008)</div>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="approval-queue-level1.html">กลับไปรายการรออนุมัติระดับ 1</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-002 (BL-004)</div>
+</body>
+</html>

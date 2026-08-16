@@ -1,0 +1,107 @@
+<!--
+  Role: ผู้บริหาร (executive) — สิทธิ์ Read-only ทั้งเครือข่าย
+  Journey Step: 3 — Drill-down ดูรายละเอียดคำขอเบิก/ยอดคงคลังรายหน่วย
+  FT-ID: FT-014 (ภาพรวมคงคลังทั้งเครือข่ายพร้อม Drill-down รายหน่วย)
+  BL-ID: BL-017
+  อ้างอิง AC: BL-017 Scenario 1 (drill-down รายหน่วย — happy path), Scenario 2 (พยายามแก้ไขระหว่าง drill-down ต้องไม่ได้ — read-only), Scenario 3 (สลับดูหน่วยอื่นแล้วข้อมูลไม่ปนกัน)
+  หมายเหตุ: ชื่อยา/หน่วยงาน/รหัสคำขอ/จำนวนทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>รายละเอียดหน่วย — รพ.สต. ตัวอย่าง A — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item active" href="dashboard.html">ภาพรวมเครือข่าย</a>
+    <a class="nav-item" href="trend-analysis.html">แนวโน้มการเบิก-จ่าย</a>
+    <a class="nav-item" href="report-filter.html">ส่งออกรายงาน</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: เครือข่าย รพ.สต. อำเภอเมือง เชียงราย (ทุกหน่วย)</span>
+      <span>บทบาท: ผู้บริหาร — Read-only (นพ./ภญ. ตัวอย่าง ผู้บริหาร) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <p><a class="btn-text" href="dashboard.html">&larr; กลับไปภาพรวมเครือข่าย</a></p>
+      <h1>รายละเอียดหน่วย — รพ.สต. ตัวอย่าง A</h1>
+
+      <div class="alert-banner">
+        มุมมองนี้เป็นแบบ <strong>อ่านอย่างเดียว (Read-only)</strong> — สิทธิ์ผู้บริหารไม่สามารถแก้ไขยอดคงคลังหรือสถานะคำขอเบิกของหน่วยนี้ได้ (BL-017 Scenario 2 / RBAC BL-024)
+      </div>
+
+      <div class="form-field" style="max-width: 320px;">
+        <label for="unit-switch">สลับดูหน่วยงานอื่น (ตัวอย่างตัวเลือก)</label>
+        <input type="text" id="unit-switch" value="รพ.สต. ตัวอย่าง A" readonly>
+        <p class="proto-note">Prototype: จำลองการเลือกหน่วยงานด้วยค่าคงที่ — เมื่อสลับหน่วยจริง ข้อมูลด้านล่างจะเปลี่ยนตามหน่วยที่เลือกโดยไม่ปนกับหน่วยก่อนหน้า (BL-017 Scenario 3)</p>
+      </div>
+
+      <h2>ยอดคงคลังของหน่วยนี้</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รายการยา</th>
+            <th class="num">ยอดคงคลังปัจจุบัน</th>
+            <th class="num">เกณฑ์ Safety Stock</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-alert">
+            <td>ยา A</td>
+            <td class="num">80</td>
+            <td class="num">120</td>
+            <td><span class="badge badge-danger">ต่ำกว่าเกณฑ์</span></td>
+          </tr>
+          <tr>
+            <td>ยา B</td>
+            <td class="num">210</td>
+            <td class="num">150</td>
+            <td><span class="badge badge-success">ปกติ</span></td>
+          </tr>
+          <tr>
+            <td>ยา C</td>
+            <td class="num">160</td>
+            <td class="num">150</td>
+            <td><span class="badge badge-warning">ใกล้ถึงเกณฑ์</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 style="margin-top: var(--space-8);">คำขอเบิกล่าสุดของหน่วยนี้</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รหัสคำขอ</th>
+            <th>วันที่ยื่นคำขอ</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>REQ-2569-08-A001</td>
+            <td>01/08/2569</td>
+            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+          </tr>
+          <tr>
+            <td>REQ-2569-05-A001</td>
+            <td>02/05/2569</td>
+            <td><span class="badge badge-success">จ่ายแล้ว</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="report-filter.html">กรอง/เลือกช่วงเวลาเพื่อออกรายงานหน่วยนี้</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-014 (BL-017)</div>
+</body>
+</html>

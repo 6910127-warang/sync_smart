@@ -1,0 +1,55 @@
+<!--
+  Role: เจ้าหน้าที่ รพ.สต. (staff-hph)
+  Journey Step: 8 — ดาวน์โหลดไฟล์ Excel หลังเภสัชกรกดคอนเฟิร์มแล้ว
+  FT-ID: FT-017 (คอนเฟิร์มส่งออกไฟล์เบิกยาและดาวน์โหลดสำเนา)
+  BL-ID: BL-020b
+  อ้างอิง AC: BL-020b Scenario 2 (เภสัชกรกดคอนเฟิร์มแล้ว → ดาวน์โหลดได้ไฟล์ฉบับล่าสุด)
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง — ปุ่มดาวน์โหลดในต้นแบบนี้จำลองผลลัพธ์ ไม่ได้ดาวน์โหลดไฟล์จริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>รายละเอียดคำขอเบิก REQ-2569-05-A001 — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="stock-dashboard.html">ภาพรวมคงคลัง</a>
+    <a class="nav-item" href="requisition-new.html">สร้างคำขอเบิกยา</a>
+    <a class="nav-item active" href="requisition-list.html">รายการคำขอเบิก</a>
+    <a class="nav-item" href="emergency-requisition.html">เบิกฉุกเฉิน</a>
+    <a class="nav-item" href="notifications.html">การแจ้งเตือน</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.สต. ตัวอย่าง A</span>
+      <span>บทบาท: เจ้าหน้าที่ รพ.สต. | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <p><a class="btn-text" href="requisition-list.html">&larr; กลับไปรายการคำขอเบิก</a></p>
+      <h1>คำขอเบิก REQ-2569-05-A001</h1>
+      <p>สถานะปัจจุบัน: <span class="badge badge-success">จ่ายแล้ว</span></p>
+
+      <div class="card" style="max-width: 640px; margin-bottom: var(--space-6);">
+        <h2>ลำดับเหตุการณ์</h2>
+        <p class="text-secondary">02/05/2569 — ยื่นคำขอเบิก (รอการอนุมัติระดับ 1)</p>
+        <p class="text-secondary">03/05/2569 — เภสัชกรระดับ 1 อนุมัติ (รอการอนุมัติระดับ 2)</p>
+        <p class="text-secondary">03/05/2569 — เภสัชกรระดับ 2 อนุมัติ (พร้อมส่งออก)</p>
+        <p class="text-secondary">04/05/2569 — เภสัชกรระดับ 2 กดคอนเฟิร์ม → สร้างไฟล์ Excel + ส่งอีเมล/LINE OA ไปฝ่ายคลังยา รพ.แม่ข่าย (จ่ายแล้ว)</p>
+      </div>
+
+      <div class="alert-banner">ไฟล์ Excel คำขอเบิกฉบับที่เภสัชกรคอนเฟิร์มล่าสุดพร้อมให้ดาวน์โหลดแล้ว</div>
+
+      <p>
+        <a class="btn btn-primary" href="receive-confirm.html">ดาวน์โหลดไฟล์ Excel (REQ-2569-05-A001.xlsx)</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-017 (BL-020b)</div>
+</body>
+</html>

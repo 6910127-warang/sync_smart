@@ -1,0 +1,46 @@
+<!--
+  Role: ผู้บริหาร (executive) — รพ./สสอ., สิทธิ์ Read-only ทั้งเครือข่าย
+  Journey Step: 1 — Login + Consent Banner (ครั้งแรก)
+  FT-ID: FT-020 (RBAC/Login), FT-023 (PDPA Consent Banner)
+  BL-ID: BL-024, BL-030
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>เข้าสู่ระบบ — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<style>
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .login-card { width: 400px; }
+  .login-card .brand { text-align: center; color: var(--color-primary-700); font-size: var(--font-size-h1); font-weight: 500; margin-bottom: var(--space-2); }
+  .login-card .subtitle { text-align: center; margin-bottom: var(--space-8); }
+</style>
+</head>
+<body>
+
+  <!-- ขั้นตอนที่ 1: ฟอร์ม login (ยังไม่กด Consent) -->
+  <div class="login-wrap">
+    <div class="card login-card">
+      <div class="brand">SmartSync</div>
+      <div class="subtitle text-secondary">สำหรับผู้บริหาร รพ./สำนักงานสาธารณสุขอำเภอ (สิทธิ์อ่านอย่างเดียว — Read-only ทั้งเครือข่าย)</div>
+
+      <div class="form-field">
+        <label for="username">ชื่อผู้ใช้งาน</label>
+        <input type="text" id="username" value="executive.a" readonly>
+      </div>
+      <div class="form-field">
+        <label for="password">รหัสผ่าน</label>
+        <input type="password" id="password" value="••••••••" readonly>
+      </div>
+
+      <a class="btn btn-primary" style="width:100%; text-align:center;" href="consent.html">เข้าสู่ระบบ</a>
+      <p class="proto-note" style="margin-top:var(--space-4);">Prototype: กรอกข้อมูลตัวอย่างไว้ล่วงหน้าแล้ว กดปุ่ม "เข้าสู่ระบบ" เพื่อดูขั้นตอนถัดไป — สิทธิ์ผู้บริหารเห็นข้อมูลได้แบบ read-only ทั้งเครือข่ายเท่านั้น แก้ไขไม่ได้ (FT-020/BL-024)</p>
+    </div>
+  </div>
+
+  <div class="proto-badge">Prototype only — FT-020 / FT-023</div>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!--
+  Role: ผู้ดูแลระบบ (admin)
+  Journey Step: 5 — ตรวจสอบ Audit Trail + Access Log ย้อนหลัง อย่างน้อย 90 วัน
+  FT-ID: FT-024 (System Access Log และการเก็บรักษาข้อมูลตามกฎหมาย ≥90 วัน)
+  BL-ID: BL-029
+  อ้างอิง AC: BL-029 Scenario 1 (เก็บรักษาอย่างน้อย 90 วัน), Scenario 2 (ไม่ลบข้อมูลอัตโนมัติหลังพ้น 90 วัน), Scenario 3 (ข้อมูลอายุครบ 90 วันพอดี — boundary)
+  หมายเหตุ: ข้อมูล/วันที่ทั้งหมดในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Audit Trail / Access Log — การเก็บรักษาข้อมูล — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="rbac-user-list.html">กำหนดสิทธิ์ผู้ใช้ (RBAC)</a>
+    <a class="nav-item" href="access-log.html">System Access Log</a>
+    <a class="nav-item" href="emergency-correction.html">แก้ไขข้อมูลฉุกเฉิน</a>
+    <a class="nav-item active" href="audit-log-retention.html">Audit Trail / การเก็บรักษาข้อมูล</a>
+    <a class="nav-item" href="system-status.html">การตั้งค่าระบบ</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      <span>บทบาท: ผู้ดูแลระบบ (Admin) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>Audit Trail + Access Log — การเก็บรักษาข้อมูลตามกฎหมาย</h1>
+      <div class="alert-banner">
+        Audit Trail ทางธุรกิจ (FT-005/BL-008) และ System Access Log (FT-024/BL-028) ต้องถูกเก็บรักษาไว้อย่างน้อย 90 วัน ตาม พ.ร.บ. ว่าด้วยการกระทำความผิดเกี่ยวกับคอมพิวเตอร์ฯ มาตรา 26 — หลังพ้น 90 วันข้อมูลยังคงถูกเก็บต่อเนื่อง <strong>ไม่มีกำหนดลบ</strong> (BL-029)
+      </div>
+
+      <h2>Audit Trail ทางธุรกิจ (ตัวอย่างย้อนหลัง)</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>วันเวลา</th>
+            <th>ผู้กระทำ</th>
+            <th>เหตุการณ์</th>
+            <th>อายุข้อมูล</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>07/06/2569 10:20</td>
+            <td>admin.it.example</td>
+            <td>แก้ไขข้อมูลธุรกิจกรณีฉุกเฉิน (REQ-2569-07-A003)</td>
+            <td>วันนี้</td>
+          </tr>
+          <tr class="row-alert">
+            <td>09/03/2569 09:00</td>
+            <td>ภญ. สมหญิง ตัวอย่าง</td>
+            <td>คอนเฟิร์มส่งออกไฟล์คำขอเบิก REQ-2569-03-B002</td>
+            <td>ครบ 90 วันพอดี — ยังคงอยู่ในระบบ (BL-029 Scenario 3 — boundary)</td>
+          </tr>
+          <tr>
+            <td>15/01/2569 14:00</td>
+            <td>จนท.รพ.สต. ตัวอย่าง บี</td>
+            <td>ยืนยันรับยา REQ-2569-01-B001</td>
+            <td>เกิน 90 วันแล้ว — ยังคงเก็บต่อเนื่อง ไม่ถูกลบ (BL-029 Scenario 2)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 style="margin-top: var(--space-8);">System Access Log (ตัวอย่างย้อนหลัง)</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>วันเวลา</th>
+            <th>ผู้ใช้งาน</th>
+            <th>เหตุการณ์</th>
+            <th>IP Address</th>
+            <th>อายุข้อมูล</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>07/06/2569 09:15</td>
+            <td>admin.it.example</td>
+            <td><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td>10.0.1.10 (ตัวอย่าง)</td>
+            <td>วันนี้</td>
+          </tr>
+          <tr class="row-alert">
+            <td>09/03/2569 08:45</td>
+            <td>ภญ. สมหญิง ตัวอย่าง</td>
+            <td><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td>10.0.14.60 (ตัวอย่าง)</td>
+            <td>ครบ 90 วันพอดี — ยังคงอยู่ในระบบ (BL-029 Scenario 3 — boundary)</td>
+          </tr>
+          <tr>
+            <td>15/01/2569 07:58</td>
+            <td>จนท.รพ.สต. ตัวอย่าง บี</td>
+            <td><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td>10.0.12.44 (ตัวอย่าง)</td>
+            <td>เกิน 90 วันแล้ว — ยังคงเก็บต่อเนื่อง ไม่ถูกลบ (BL-029 Scenario 2)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-secondary" href="rbac-user-list.html">กลับไปหน้ากำหนดสิทธิ์ผู้ใช้</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-024 (BL-029)</div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!--
+  Role: เภสัชกร (pharmacist) — ผู้ตรวจสอบระดับ 2
+  Journey Step: 7 — เภสัชกรอีกคน (ระดับ 2) ตรวจสอบซ้ำและยืนยัน
+  FT-ID: FT-002 (อนุมัติคำขอเบิกแบบสองระดับ)
+  BL-ID: BL-004
+  อ้างอิง AC: BL-004 Scenario 3 (คำขอผ่านระดับ 1 แล้ว รอเภสัชกรระดับ 2 คนละคนยืนยัน)
+  หมายเหตุ: รหัสคำขอ/ชื่อหน่วย/ชื่อผู้อนุมัติทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>รออนุมัติระดับ 2 — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+    <a class="nav-item active" href="approval-queue-level2.html">รออนุมัติระดับ 2</a>
+    <a class="nav-item" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
+    <a class="nav-item" href="audit-trail.html">Audit Trail</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <span>บทบาท: เภสัชกร — ผู้ตรวจสอบระดับ 2 (ภญ. สมหญิง ตัวอย่าง) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>คำขอเบิกที่ผ่านระดับ 1 แล้ว รอตรวจสอบระดับ 2</h1>
+      <p class="text-secondary">คำขอในรายการนี้ผ่านการอนุมัติระดับ 1 มาแล้ว รอเภสัชกรอีกคน (คนละคนกับผู้อนุมัติระดับ 1) ตรวจสอบซ้ำก่อนเปลี่ยนเป็น "อนุมัติแล้ว" (FT-002 / BL-004)</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รหัสคำขอ</th>
+            <th>หน่วย รพ.สต.</th>
+            <th>ผู้อนุมัติระดับ 1</th>
+            <th>วันที่อนุมัติระดับ 1</th>
+            <th>สถานะ</th>
+            <th>การดำเนินการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>REQ-2569-07-A001</td>
+            <td>รพ.สต. ตัวอย่าง A</td>
+            <td>ภก. สมชาย ตัวอย่าง</td>
+            <td>02/07/2569</td>
+            <td><span class="badge badge-info">รอการอนุมัติระดับ 2</span></td>
+            <td><a class="btn-text" href="approval-review-level2.html">ตรวจสอบ</a></td>
+          </tr>
+          <tr>
+            <td>REQ-2569-07-B001</td>
+            <td>รพ.สต. ตัวอย่าง B</td>
+            <td>ภญ. สมหญิง ตัวอย่าง</td>
+            <td>03/07/2569</td>
+            <td><span class="badge badge-info">รอการอนุมัติระดับ 2</span></td>
+            <td><a class="btn-text" href="approval-review-level2.html">ตรวจสอบ</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="proto-note">ตัวอย่างแถวที่สอง (REQ-2569-07-B001) ใช้แสดงกรณีที่ผู้อนุมัติระดับ 1 เป็นคนเดียวกับผู้ล็อกอินขณะนี้ — ดูตัวอย่างพฤติกรรมของระบบในหน้าตรวจสอบ (approval-review-level2.html)</p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-002 (BL-004)</div>
+</body>
+</html>

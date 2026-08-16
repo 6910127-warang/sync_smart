@@ -1,0 +1,92 @@
+<!--
+  Role: เภสัชกร (pharmacist)
+  Journey Step: 12 — บันทึกทุกขั้นตอนลง Audit Trail
+  FT-ID: FT-005 (Audit Trail การเบิก-จ่าย-อนุมัติ-รับ-ขอปรึกษา)
+  BL-ID: BL-008
+  อ้างอิง AC: BL-008 Scenario 1 (บันทึกทุกเหตุการณ์พร้อมผู้กระทำ/วันเวลา), Scenario 3 (บันทึกแยกผู้อนุมัติแต่ละระดับ)
+  หมายเหตุ: รหัสคำขอ/ชื่อผู้กระทำ/วันเวลาทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Audit Trail — REQ-2569-06-A001 — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+    <a class="nav-item" href="approval-queue-level2.html">รออนุมัติระดับ 2</a>
+    <a class="nav-item" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
+    <a class="nav-item active" href="audit-trail.html">Audit Trail</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <span>บทบาท: เภสัชกร | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>Audit Trail — คำขอเบิก REQ-2569-06-A001</h1>
+      <p class="text-secondary">บันทึกทุกเหตุการณ์ของคำขอนี้แบบแก้ไขไม่ได้ (FT-005 / BL-008) — เป็นคนละชุดข้อมูลจาก System Access Log (login/logout) ตาม FT-024</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>วันเวลา</th>
+            <th>ผู้กระทำ</th>
+            <th>เหตุการณ์</th>
+            <th>รายละเอียด</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>01/06/2569 09:00</td>
+            <td>จนท. รพ.สต. ตัวอย่าง A</td>
+            <td>ยื่นคำขอเบิก</td>
+            <td>สถานะเริ่มต้น: รอการอนุมัติระดับ 1</td>
+          </tr>
+          <tr>
+            <td>02/06/2569 10:15</td>
+            <td>ภก. สมชาย ตัวอย่าง</td>
+            <td>อนุมัติระดับ 1</td>
+            <td>สถานะเปลี่ยนเป็น: รอการอนุมัติระดับ 2</td>
+          </tr>
+          <tr>
+            <td>03/06/2569 13:40</td>
+            <td>ภญ. สมหญิง ตัวอย่าง</td>
+            <td>อนุมัติระดับ 2</td>
+            <td>สถานะเปลี่ยนเป็น: อนุมัติแล้ว &rarr; พร้อมส่งออก (อัตโนมัติ)</td>
+          </tr>
+          <tr>
+            <td>04/06/2569 14:10</td>
+            <td>ภญ. สมหญิง ตัวอย่าง</td>
+            <td>คอนเฟิร์มส่งออกไฟล์</td>
+            <td>สร้างไฟล์ Excel + ส่งอีเมล/LINE OA ไปฝ่ายคลังยา รพ.แม่ข่าย, สถานะเปลี่ยนเป็น: จ่ายแล้ว</td>
+          </tr>
+          <tr>
+            <td>05/06/2569 08:30</td>
+            <td>จนท. รพ.สต. ตัวอย่าง A</td>
+            <td>ดาวน์โหลดไฟล์ Excel</td>
+            <td>ดาวน์โหลดสำเนาไฟล์คำขอเบิกที่คอนเฟิร์มแล้ว (BL-020b)</td>
+          </tr>
+          <tr>
+            <td>06/06/2569 09:05</td>
+            <td>จนท. รพ.สต. ตัวอย่าง A</td>
+            <td>ยืนยันรับยา</td>
+            <td>ยอดคงคลังของหน่วยอัปเดตทันที, สถานะเปลี่ยนเป็น: รับแล้ว</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="approval-queue-level1.html">กลับไปรายการรออนุมัติระดับ 1</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-005 (BL-008)</div>
+</body>
+</html>

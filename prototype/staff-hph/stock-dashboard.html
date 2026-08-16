@@ -1,0 +1,85 @@
+<!--
+  Role: เจ้าหน้าที่ รพ.สต. (staff-hph)
+  Journey Step: 10 — ดูยอดคงคลังของหน่วยตนเอง (Real-time) — ใช้เป็นหน้า Landing หลังเข้าสู่ระบบ
+  FT-ID: FT-004 (แสดงยอดคงคลังแบบ Real-time)
+  BL-ID: BL-007
+  อ้างอิง AC: BL-007 Scenario 1 (อัปเดตภายใน 5 วินาที), Scenario 2 (เห็นเฉพาะหน่วยตนเอง)
+  หมายเหตุ: ชื่อยา/หน่วยงาน/จำนวนทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลยา NCD จริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ภาพรวมคงคลัง — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item active" href="stock-dashboard.html">ภาพรวมคงคลัง</a>
+    <a class="nav-item" href="requisition-new.html">สร้างคำขอเบิกยา</a>
+    <a class="nav-item" href="requisition-list.html">รายการคำขอเบิก</a>
+    <a class="nav-item" href="emergency-requisition.html">เบิกฉุกเฉิน</a>
+    <a class="nav-item" href="notifications.html">การแจ้งเตือน</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.สต. ตัวอย่าง A</span>
+      <span>บทบาท: เจ้าหน้าที่ รพ.สต. | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>ภาพรวมคงคลังยา — รพ.สต. ตัวอย่าง A</h1>
+      <p class="text-secondary">ยอดคงคลังอัปเดตแบบ Real-time (ภายใน 5 วินาทีหลังมีการบันทึกรับ/จ่ายยา)</p>
+
+      <div class="alert-banner alert-warning">
+        มี 1 รายการที่ยอดคงคลังต่ำกว่าเกณฑ์ Safety Stock — ดูรายละเอียดที่ <a href="notifications.html" style="color:inherit; text-decoration:underline;">การแจ้งเตือน</a>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รายการยา</th>
+            <th class="num">ยอดคงคลังปัจจุบัน</th>
+            <th class="num">เกณฑ์ Safety Stock</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-alert">
+            <td>ยา A</td>
+            <td class="num">80</td>
+            <td class="num">120</td>
+            <td><span class="badge badge-danger">ต่ำกว่าเกณฑ์</span></td>
+          </tr>
+          <tr>
+            <td>ยา B</td>
+            <td class="num">210</td>
+            <td class="num">150</td>
+            <td><span class="badge badge-success">ปกติ</span></td>
+          </tr>
+          <tr>
+            <td>ยา C</td>
+            <td class="num">160</td>
+            <td class="num">150</td>
+            <td><span class="badge badge-warning">ใกล้ถึงเกณฑ์</span></td>
+          </tr>
+          <tr>
+            <td>ยา D</td>
+            <td class="num">300</td>
+            <td class="num">200</td>
+            <td><span class="badge badge-success">ปกติ</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="requisition-new.html">สร้างคำขอเบิกยาประจำเดือน</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-004 (BL-007)</div>
+</body>
+</html>

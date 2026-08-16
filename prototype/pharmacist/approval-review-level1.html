@@ -1,0 +1,92 @@
+<!--
+  Role: เภสัชกร (pharmacist) — ผู้อนุมัติระดับ 1
+  Journey Step: 4, 5 — พิจารณา/อนุมัติ/ปฏิเสธ/ปรับจำนวน / ระบุจำนวนคาดการณ์เพิ่มเติมสำหรับเคสใหม่จาก รพศ. (ถ้ามี)
+  FT-ID: FT-002 (อนุมัติคำขอเบิกแบบสองระดับ), FT-013 (ปรับเกณฑ์ Safety Stock สำหรับเคสใหม่จาก รพศ.)
+  BL-ID: BL-004, BL-015
+  อ้างอิง AC: BL-004 Scenario 1 (อนุมัติระดับ 1) / Scenario 2 (ปฏิเสธ/ปรับจำนวน), BL-015 Scenario 1/2 (ระบุจำนวนคาดการณ์เพิ่มเติม — เป็นฟิลด์ทางเลือก)
+  หมายเหตุ: ชื่อยา/จำนวนทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลยา NCD จริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>พิจารณาคำขอ REQ-2569-08-A001 — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item active" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+    <a class="nav-item" href="approval-queue-level2.html">รออนุมัติระดับ 2</a>
+    <a class="nav-item" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
+    <a class="nav-item" href="audit-trail.html">Audit Trail</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <span>บทบาท: เภสัชกร — ผู้อนุมัติระดับ 1 (ภก. สมชาย ตัวอย่าง) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <p><a class="btn-text" href="approval-queue-level1.html">&larr; กลับไปรายการรออนุมัติระดับ 1</a></p>
+      <h1>คำขอเบิก REQ-2569-08-A001</h1>
+      <p>หน่วย: รพ.สต. ตัวอย่าง A &nbsp;|&nbsp; สถานะปัจจุบัน: <span class="badge badge-info">รอการอนุมัติระดับ 1</span></p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รายการยา</th>
+            <th class="num">ยอดแนะนำเบิก (ระบบคำนวณ)</th>
+            <th class="num">ยอดคงเหลือที่ จนท. แจ้ง</th>
+            <th class="num">จำนวนที่อนุมัติ (ปรับได้)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ยา A</td>
+            <td class="num">150</td>
+            <td class="num">80</td>
+            <td class="num"><input type="text" class="numeric" value="150"></td>
+          </tr>
+          <tr>
+            <td>ยา B</td>
+            <td class="num">60</td>
+            <td class="num">210</td>
+            <td class="num"><input type="text" class="numeric" value="60"></td>
+          </tr>
+          <tr>
+            <td>ยา C</td>
+            <td class="num">90</td>
+            <td class="num">160</td>
+            <td class="num"><input type="text" class="numeric" value="90"></td>
+          </tr>
+          <tr>
+            <td>ยา D</td>
+            <td class="num">0</td>
+            <td class="num">300</td>
+            <td class="num"><input type="text" class="numeric" value="0"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="card" style="max-width: 640px; margin-top: var(--space-6);">
+        <h2>เคสใหม่จาก รพศ. (ถ้ามี) — FT-013 / BL-015</h2>
+        <p class="text-secondary">ฟิลด์นี้เป็นทางเลือก ใช้เฉพาะเมื่อมีผู้ป่วยเคสใหม่ที่ รพศ. ส่งต่อกลับมารับยาที่หน่วยนี้ซึ่งยังไม่มีข้อมูลย้อนหลัง — ระบบจะบวกจำนวนนี้เข้ากับเกณฑ์ Safety Stock ของหน่วย</p>
+        <div class="form-field">
+          <label for="forecast">จำนวนคาดการณ์เพิ่มเติม (ยา A)</label>
+          <input type="text" id="forecast" class="numeric" value="0" style="max-width: 160px;">
+        </div>
+      </div>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="approval-level1-confirm.html">อนุมัติระดับ 1</a>
+        &nbsp;
+        <a class="btn btn-danger" href="approval-level1-reject.html">ปฏิเสธคำขอ</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-002 / FT-013 (BL-004, BL-015)</div>
+</body>
+</html>

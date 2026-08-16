@@ -1,0 +1,61 @@
+<!--
+  Role: เจ้าหน้าที่ รพ.สต. (staff-hph)
+  Journey Step: 12 — ยาหมดกะทันหันนอกรอบเดือน → สร้างคำขอเบิกฉุกเฉิน
+  FT-ID: FT-006 (สร้างคำขอเบิกฉุกเฉินนอกรอบ)
+  BL-ID: BL-009
+  อ้างอิง AC: BL-009 Scenario 1 (เข้าสู่ผังอนุมัติสองระดับเดียวกับคำขอปกติ + notify ทันทีให้ผู้อนุมัติทั้งสองระดับ), Scenario 2 (ต้องแยกแยะได้จากคำขอปกติ)
+  หมายเหตุ: ชื่อยา/จำนวนทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลยา NCD จริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>สร้างคำขอเบิกฉุกเฉิน — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="stock-dashboard.html">ภาพรวมคงคลัง</a>
+    <a class="nav-item" href="requisition-new.html">สร้างคำขอเบิกยา</a>
+    <a class="nav-item" href="requisition-list.html">รายการคำขอเบิก</a>
+    <a class="nav-item active" href="emergency-requisition.html">เบิกฉุกเฉิน</a>
+    <a class="nav-item" href="notifications.html">การแจ้งเตือน</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.สต. ตัวอย่าง A</span>
+      <span>บทบาท: เจ้าหน้าที่ รพ.สต. | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1><span class="badge badge-danger">ฉุกเฉิน</span> สร้างคำขอเบิกยานอกรอบ</h1>
+      <p class="text-secondary">ใช้เมื่อยาหมดกะทันหันนอกรอบเบิกประจำเดือน — คำขอนี้จะเข้าสู่ผังอนุมัติสองระดับเดียวกับคำขอปกติ แต่ระบบจะส่งแจ้งเตือนทันทีให้ผู้อนุมัติทั้งสองระดับ (แทนที่จะรอรอบตรวจปกติ)</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รายการยา</th>
+            <th class="num">ยอดคงเหลือปัจจุบัน</th>
+            <th class="num">จำนวนที่ต้องการเบิกฉุกเฉิน</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-alert">
+            <td>ยา A</td>
+            <td class="num">15</td>
+            <td class="num"><input type="text" class="numeric" value="100"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="emergency-requisition-confirm.html">ยืนยันคำขอเบิกฉุกเฉิน</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-006 (BL-009)</div>
+</body>
+</html>

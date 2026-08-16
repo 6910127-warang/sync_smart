@@ -1,0 +1,62 @@
+<!--
+  Role: ผู้ดูแลระบบ (admin)
+  Journey Step: 2 — กำหนดสิทธิ์การเข้าถึงตาม Role (RBAC) ให้ผู้ใช้แต่ละคน
+  FT-ID: FT-020 (กำหนดสิทธิ์การเข้าถึงตาม Role)
+  BL-ID: BL-024
+  อ้างอิง AC: BL-024 Scenario 1 (เจ้าหน้าที่ รพ.สต. เห็น/แก้ไขได้เฉพาะหน่วยตนเอง — ผลลัพธ์ของการกำหนดสิทธิ์นี้)
+  หมายเหตุ: ชื่อผู้ใช้/หน่วยงานเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>แก้ไขสิทธิ์ผู้ใช้ — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item active" href="rbac-user-list.html">กำหนดสิทธิ์ผู้ใช้ (RBAC)</a>
+    <a class="nav-item" href="access-log.html">System Access Log</a>
+    <a class="nav-item" href="emergency-correction.html">แก้ไขข้อมูลฉุกเฉิน</a>
+    <a class="nav-item" href="audit-log-retention.html">Audit Trail / การเก็บรักษาข้อมูล</a>
+    <a class="nav-item" href="system-status.html">การตั้งค่าระบบ</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      <span>บทบาท: ผู้ดูแลระบบ (Admin) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <p><a class="btn-text" href="rbac-user-list.html">&larr; กลับไปรายชื่อผู้ใช้</a></p>
+      <h1>แก้ไขสิทธิ์การเข้าถึง — จนท.รพ.สต. ตัวอย่าง เอ</h1>
+      <p class="text-secondary">กำหนดหน่วยงานที่สังกัดและบทบาทของผู้ใช้รายนี้ — เป็นตัวกำหนดขอบเขตข้อมูลที่ผู้ใช้จะเห็น/แก้ไขได้ทั่วทั้งระบบ (FT-020 / BL-024)</p>
+
+      <div class="form-field">
+        <label for="username">ชื่อผู้ใช้งาน</label>
+        <input type="text" id="username" value="จนท.รพ.สต. ตัวอย่าง เอ" readonly>
+      </div>
+      <div class="form-field">
+        <label for="unit">หน่วยงานที่สังกัด</label>
+        <input type="text" id="unit" value="รพ.สต. ตัวอย่าง A" readonly>
+      </div>
+      <div class="form-field">
+        <label for="role">บทบาท (Role)</label>
+        <input type="text" id="role" value="เจ้าหน้าที่ รพ.สต." readonly>
+      </div>
+
+      <div class="alert-banner">
+        ผลของการกำหนดสิทธิ์นี้: ผู้ใช้รายนี้จะเห็น/แก้ไขได้เฉพาะข้อมูล (คำขอเบิก, ยอดคงคลัง) ของ รพ.สต. ตัวอย่าง A เท่านั้น (BL-024 Scenario 1) — ไม่สามารถเข้าถึงข้อมูลของหน่วยอื่นได้ไม่ว่าด้วยวิธีใด
+      </div>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="access-log.html">บันทึกสิทธิ์การเข้าถึง</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-020 (BL-024)</div>
+</body>
+</html>

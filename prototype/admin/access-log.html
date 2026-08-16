@@ -1,0 +1,95 @@
+<!--
+  Role: ผู้ดูแลระบบ (admin)
+  Journey Step: 3 — ตรวจสอบ System Access Log (login/logout + IP Address)
+  FT-ID: FT-024 (System Access Log และการเก็บรักษาข้อมูลตามกฎหมาย)
+  BL-ID: BL-028
+  อ้างอิง AC: BL-028 Scenario 1 (บันทึก login/logout พร้อม IP — happy path), Scenario 2 (login ไม่สำเร็จ — [ถือว่า] ควรบันทึกด้วย), Scenario 3 (บันทึกเวลา logout แยกจากเวลา login)
+  หมายเหตุ: ชื่อผู้ใช้/IP Address ทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) — ใช้ IP ในช่วงที่สงวนไว้สำหรับเครือข่ายภายใน (private range) เพื่อไม่ให้เป็น IP จริง ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>System Access Log — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="rbac-user-list.html">กำหนดสิทธิ์ผู้ใช้ (RBAC)</a>
+    <a class="nav-item active" href="access-log.html">System Access Log</a>
+    <a class="nav-item" href="emergency-correction.html">แก้ไขข้อมูลฉุกเฉิน</a>
+    <a class="nav-item" href="audit-log-retention.html">Audit Trail / การเก็บรักษาข้อมูล</a>
+    <a class="nav-item" href="system-status.html">การตั้งค่าระบบ</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      <span>บทบาท: ผู้ดูแลระบบ (Admin) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>System Access Log</h1>
+      <p class="text-secondary">บันทึกการ login/logout ของผู้ใช้ทุกคนพร้อม IP Address — เป็นคนละชุดข้อมูลจาก Audit Trail ทางธุรกิจ (FT-005/BL-008) ตาม FT-024 / BL-028</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>วันเวลา</th>
+            <th>ผู้ใช้งาน</th>
+            <th>เหตุการณ์</th>
+            <th>IP Address</th>
+            <th>หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>07/06/2569 08:02</td>
+            <td>จนท.รพ.สต. ตัวอย่าง เอ</td>
+            <td><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td>10.0.12.31 (ตัวอย่าง)</td>
+            <td>—</td>
+          </tr>
+          <tr class="row-alert">
+            <td>07/06/2569 08:05</td>
+            <td>ภก. สมชาย ตัวอย่าง</td>
+            <td><span class="badge badge-danger">Login ไม่สำเร็จ</span></td>
+            <td>10.0.14.52 (ตัวอย่าง)</td>
+            <td>รหัสผ่านไม่ถูกต้อง — บันทึกความพยายามไว้เพื่อความปลอดภัย (BL-028 Scenario 2)</td>
+          </tr>
+          <tr>
+            <td>07/06/2569 08:06</td>
+            <td>ภก. สมชาย ตัวอย่าง</td>
+            <td><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td>10.0.14.52 (ตัวอย่าง)</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>07/06/2569 16:31</td>
+            <td>ภก. สมชาย ตัวอย่าง</td>
+            <td><span class="badge">Logout</span></td>
+            <td>10.0.14.52 (ตัวอย่าง)</td>
+            <td>บันทึกเวลา logout แยกจากเวลา login ของ session เดียวกัน (BL-028 Scenario 3)</td>
+          </tr>
+          <tr>
+            <td>07/06/2569 09:15</td>
+            <td>admin.it.example</td>
+            <td><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td>10.0.1.10 (ตัวอย่าง)</td>
+            <td>ผู้ใช้ปัจจุบัน</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="emergency-correction.html">พบข้อผิดพลาดข้อมูลธุรกิจ &rarr; ดำเนินการแก้ไขฉุกเฉิน</a>
+        &nbsp;
+        <a class="btn btn-secondary" href="audit-log-retention.html">ไม่พบข้อผิดพลาด &rarr; ตรวจสอบ Audit Trail ย้อนหลัง</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-024 (BL-028)</div>
+</body>
+</html>

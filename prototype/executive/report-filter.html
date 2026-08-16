@@ -1,0 +1,71 @@
+<!--
+  Role: ผู้บริหาร (executive) — สิทธิ์ Read-only ทั้งเครือข่าย
+  Journey Step: 5 — กรอง/เลือกช่วงเวลาและหน่วยงาน (ก่อนส่งออกรายงาน)
+  FT-ID: FT-016 (ส่งออกรายงานพร้อมตัวกรองช่วงเวลา/หน่วยงาน)
+  BL-ID: BL-019b
+  อ้างอิง AC: BL-019b Scenario 1 (กรองตามช่วงเวลา/หน่วยงาน — happy path), Scenario 2 (เลือกช่วงเวลาไม่ถูกต้อง — วันเริ่มต้นอยู่หลังวันสิ้นสุด, แสดงเป็นตัวอย่างประกอบ ไม่ใช่ validation แบบ interactive จริง), Scenario 3 (กรองเฉพาะหน่วยงานที่เลือก — สอดคล้อง BL-017)
+  หมายเหตุ: ชื่อหน่วยงาน/ช่วงเวลาทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>กรองรายงานก่อนส่งออก — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<style>
+  .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); max-width: 640px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="dashboard.html">ภาพรวมเครือข่าย</a>
+    <a class="nav-item" href="trend-analysis.html">แนวโน้มการเบิก-จ่าย</a>
+    <a class="nav-item active" href="report-filter.html">ส่งออกรายงาน</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: เครือข่าย รพ.สต. อำเภอเมือง เชียงราย (ทุกหน่วย)</span>
+      <span>บทบาท: ผู้บริหาร — Read-only (นพ./ภญ. ตัวอย่าง ผู้บริหาร) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>กรอง/เลือกช่วงเวลาและหน่วยงานสำหรับรายงาน</h1>
+      <p class="text-secondary">เลือกช่วงเวลาและ/หรือหน่วยงานที่ต้องการโฟกัส ก่อนส่งออกรายงานเป็นไฟล์ (FT-016 / BL-019b)</p>
+
+      <div class="filter-grid">
+        <div class="form-field">
+          <label for="date-from">ช่วงเวลาเริ่มต้น</label>
+          <input type="text" id="date-from" value="01/06/2569" readonly>
+        </div>
+        <div class="form-field">
+          <label for="date-to">ช่วงเวลาสิ้นสุด</label>
+          <input type="text" id="date-to" value="31/08/2569" readonly>
+        </div>
+        <div class="form-field" style="grid-column: 1 / -1;">
+          <label for="unit-filter">หน่วยงาน (ตัวอย่างการเลือก)</label>
+          <input type="text" id="unit-filter" value="รพ.สต. ตัวอย่าง A" readonly>
+          <p class="proto-note">Prototype: จำลองการเลือกหน่วยงานด้วยค่าคงที่ — เมื่อเลือกหน่วยงานอื่น ข้อมูลรายงานจะกรองเฉพาะหน่วยที่เลือก สอดคล้องกับสิทธิ์ drill-down รายหน่วย (BL-019b Scenario 3 / BL-017)</p>
+        </div>
+      </div>
+
+      <div class="card" style="max-width: 640px; margin-top: var(--space-6);">
+        <h2 style="font-size: var(--font-size-h2);">ตัวอย่างกรณีเลือกช่วงเวลาไม่ถูกต้อง (edge case)</h2>
+        <div class="form-field" style="margin-bottom:0;">
+          <label>ช่วงเวลาเริ่มต้น</label>
+          <input type="text" value="31/08/2569" readonly>
+          <div class="field-error">วันเริ่มต้นอยู่หลังวันสิ้นสุด กรุณาตรวจสอบช่วงเวลาอีกครั้ง (BL-019b Scenario 2)</div>
+        </div>
+        <p class="proto-note">ตัวอย่างข้อความ validation นี้แสดงเป็น state ประกอบเท่านั้น ไม่ใช่การตรวจสอบแบบ interactive จริงในต้นแบบนี้</p>
+      </div>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="export-result.html">ส่งออกรายงาน</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-016 (BL-019b)</div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!--
+  Role: ผู้ดูแลระบบ (admin)
+  Journey Step: 4 — พบข้อผิดพลาดข้อมูลธุรกิจกรณีฉุกเฉิน → แก้ไขข้อมูลธุรกิจ
+  FT-ID: FT-021 (Admin แก้ไขข้อมูลธุรกิจกรณีฉุกเฉิน)
+  BL-ID: BL-025
+  อ้างอิง AC: BL-025 Scenario 1 (แก้ไขพร้อมบันทึก audit log — happy path)
+  หมายเหตุ: รหัสคำขอ/ชื่อหน่วยงาน/ค่าตัวเลขทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>แก้ไขข้อมูลธุรกิจกรณีฉุกเฉิน — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="rbac-user-list.html">กำหนดสิทธิ์ผู้ใช้ (RBAC)</a>
+    <a class="nav-item" href="access-log.html">System Access Log</a>
+    <a class="nav-item active" href="emergency-correction.html">แก้ไขข้อมูลฉุกเฉิน</a>
+    <a class="nav-item" href="audit-log-retention.html">Audit Trail / การเก็บรักษาข้อมูล</a>
+    <a class="nav-item" href="system-status.html">การตั้งค่าระบบ</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      <span>บทบาท: ผู้ดูแลระบบ (Admin) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>แก้ไขข้อมูลธุรกิจกรณีฉุกเฉิน</h1>
+      <div class="alert-banner">
+        สิทธิ์นี้ใช้เฉพาะกรณีฉุกเฉินเท่านั้น (เช่น ข้อมูลยอดคงคลัง/เบิก-จ่ายผิดพลาดที่ต้องแก้ไขเร่งด่วน) — ทุกการแก้ไขจะถูกบันทึกลง Audit Log ทันทีพร้อมเหตุผล โดยไม่กระทบกระบวนการอนุมัติปกติ (BL-025)
+      </div>
+
+      <div class="form-field">
+        <label for="record">ค้นหารายการที่ต้องการแก้ไข</label>
+        <input type="text" id="record" value="REQ-2569-07-A003 — ยอดคงคลังยา B ของ รพ.สต. ตัวอย่าง A (ตัวอย่าง)">
+      </div>
+      <div class="form-field">
+        <label for="current-value">ค่าปัจจุบันในระบบ</label>
+        <input type="text" id="current-value" class="numeric" value="80 หน่วย" readonly>
+      </div>
+      <div class="form-field">
+        <label for="new-value">ค่าที่ถูกต้อง</label>
+        <input type="text" id="new-value" class="numeric" value="65 หน่วย">
+      </div>
+      <div class="form-field">
+        <label for="reason">เหตุผลการแก้ไข <span class="text-secondary">(ต้องระบุก่อนยืนยัน)</span></label>
+        <input type="text" id="reason" value="ตรวจพบยอดคงคลังคลาดเคลื่อนจากการนับสต็อกจริงประจำเดือน มิ.ย. 2569 (ตัวอย่าง)">
+      </div>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="emergency-correction-confirm.html">ยืนยันแก้ไขข้อมูล</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-021 (BL-025)</div>
+</body>
+</html>

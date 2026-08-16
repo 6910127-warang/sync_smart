@@ -1,0 +1,47 @@
+<!--
+  Role: ผู้ดูแลระบบ (admin) — รพ.แม่ข่าย (ฝ่าย IT), สิทธิ์เต็มด้านการตั้งค่าระบบ/ผู้ใช้
+  Journey Step: 1 — Login ครั้งแรก + เห็น Consent Banner
+  FT-ID: FT-020 (RBAC/Login)
+  BL-ID: BL-024
+  อ้างอิง AC: BL-024 Scenario 3 (Admin สิทธิ์เต็มด้านระบบ แต่แก้ไขข้อมูลธุรกิจได้เฉพาะกรณีฉุกเฉิน)
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง — ชื่อผู้ใช้/รหัสผ่านเป็น placeholder ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>เข้าสู่ระบบ — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<style>
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .login-card { width: 400px; }
+  .login-card .brand { text-align: center; color: var(--color-primary-700); font-size: var(--font-size-h1); font-weight: 500; margin-bottom: var(--space-2); }
+  .login-card .subtitle { text-align: center; margin-bottom: var(--space-8); }
+</style>
+</head>
+<body>
+
+  <!-- ขั้นตอนที่ 1: ฟอร์ม login (ยังไม่กด Consent) -->
+  <div class="login-wrap">
+    <div class="card login-card">
+      <div class="brand">SmartSync</div>
+      <div class="subtitle text-secondary">สำหรับผู้ดูแลระบบ (Admin) — สิทธิ์เต็มด้านการตั้งค่าระบบ/ผู้ใช้ แก้ไขข้อมูลธุรกิจได้เฉพาะกรณีฉุกเฉิน</div>
+
+      <div class="form-field">
+        <label for="username">ชื่อผู้ใช้งาน</label>
+        <input type="text" id="username" value="admin.it.example" readonly>
+      </div>
+      <div class="form-field">
+        <label for="password">รหัสผ่าน</label>
+        <input type="password" id="password" value="••••••••" readonly>
+      </div>
+
+      <a class="btn btn-primary" style="width:100%; text-align:center;" href="consent.html">เข้าสู่ระบบ</a>
+      <p class="proto-note" style="margin-top:var(--space-4);">Prototype: กรอกข้อมูลตัวอย่างไว้ล่วงหน้าแล้ว กดปุ่ม "เข้าสู่ระบบ" เพื่อดูขั้นตอนถัดไป — สิทธิ์ Admin มีสิทธิ์เต็มด้านการตั้งค่าระบบ แต่แก้ไขข้อมูลธุรกิจ (เบิก/จ่าย/คงคลัง) ได้เฉพาะกรณีฉุกเฉินเท่านั้น (FT-020/BL-024 Scenario 3)</p>
+    </div>
+  </div>
+
+  <div class="proto-badge">Prototype only — FT-020</div>
+</body>
+</html>

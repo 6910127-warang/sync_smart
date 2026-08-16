@@ -1,0 +1,50 @@
+<!--
+  Role: ผู้ดูแลระบบ (admin)
+  Journey Step: ไม่ปรากฏเป็น step แยกใน 03-user-journey/admin-journey.md (ระบุใน changelog ของไฟล์นั้นว่า FT-025 เป็น NFR เชิงระบบ ไม่ใช่ขั้นตอนที่ Admin ลงมือทำเป็นขั้นเป็นตอน) — สร้างเป็นหน้าจอการตั้งค่า/สถานะระบบเสริมตามที่ Feature List ระบุไว้
+  FT-ID: FT-025 (ระบบพร้อมใช้งานเฉพาะเวลาราชการ)
+  BL-ID: BL-033
+  อ้างอิง AC: BL-033 Scenario 1 (พร้อมใช้งานในเวลาราชการ), Scenario 2 (นอกเวลาราชการ ไม่บังคับ 24/7)
+  หมายเหตุ: เป็นหน้าจอแสดงสถานะ/การตั้งค่าที่มีอยู่แล้วเชิงนโยบาย (NFR) ไม่ใช่ตัวจัดตารางเวลาแบบ interactive จริง — เวลา/สถานะที่แสดงเป็นข้อมูลตัวอย่าง (illustrative)
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>การตั้งค่าระบบ — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="rbac-user-list.html">กำหนดสิทธิ์ผู้ใช้ (RBAC)</a>
+    <a class="nav-item" href="access-log.html">System Access Log</a>
+    <a class="nav-item" href="emergency-correction.html">แก้ไขข้อมูลฉุกเฉิน</a>
+    <a class="nav-item" href="audit-log-retention.html">Audit Trail / การเก็บรักษาข้อมูล</a>
+    <a class="nav-item active" href="system-status.html">การตั้งค่าระบบ</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      <span>บทบาท: ผู้ดูแลระบบ (Admin) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>การตั้งค่าระบบ — ช่วงเวลาพร้อมใช้งาน</h1>
+      <p class="text-secondary">ระบบพร้อมใช้งานเฉพาะเวลาราชการ สอดคล้องกับเวลาทำงานจริงของเจ้าหน้าที่ รพ.สต./เภสัชกร โดยไม่ต้องรองรับ 24/7 (FT-025 / BL-033) — หน้านี้แสดงสถานะ/นโยบายที่ตั้งไว้ ไม่ใช่ตัวจัดตารางเวลาที่แก้ไขได้จริงในเฟส Prototype นี้</p>
+
+      <div class="card" style="max-width: 560px;">
+        <p class="text-secondary" style="margin-bottom: var(--space-2);">สถานะระบบปัจจุบัน (ตัวอย่าง)</p>
+        <p><span class="badge badge-success">พร้อมใช้งาน</span> — ขณะนี้อยู่ในช่วงเวลาราชการ</p>
+        <p style="margin-top: var(--space-4);"><strong>ช่วงเวลาพร้อมใช้งานที่กำหนด:</strong> 08:00–16:30 น. วันจันทร์–ศุกร์ (BL-033)</p>
+      </div>
+
+      <div class="alert-banner" style="margin-top: var(--space-6);">
+        ตัวอย่างประกอบ (BL-033 Scenario 2): นอกช่วงเวลาราชการ (เช่น ช่วงเย็นวันธรรมดาหรือวันหยุดสุดสัปดาห์) ระบบไม่จำเป็นต้องพร้อมใช้งาน — ไม่ถือเป็นข้อบกพร่องหากไม่พร้อมใช้งานนอกช่วงเวลานี้
+      </div>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-025 (BL-033)</div>
+</body>
+</html>

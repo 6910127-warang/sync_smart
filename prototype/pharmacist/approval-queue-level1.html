@@ -1,0 +1,94 @@
+<!--
+  Role: เภสัชกร (pharmacist) — ผู้อนุมัติระดับ 1
+  Journey Step: 2, 3, 13 — รับแจ้งเตือน "ขอปรึกษา" ผ่าน LINE OA (ถ้ามี) / เห็นคำขอเบิกที่รอการอนุมัติระดับ 1 / คำขอเบิกฉุกเฉินนอกรอบ (แจ้งเตือนทันที)
+  FT-ID: FT-002 (อนุมัติคำขอเบิกแบบสองระดับ), FT-001 (ขอปรึกษา — มุมมองฝั่งเภสัชกร), FT-006 (เบิกฉุกเฉิน — มุมมองฝั่งเภสัชกร)
+  BL-ID: BL-004, BL-003, BL-009
+  อ้างอิง AC: BL-004 Scenario 1 (คำขอสถานะรออนุมัติระดับ 1), BL-003 Scenario 1 (แจ้งเตือนขอปรึกษาผ่าน LINE OA), BL-009 Scenario 1/2 (เข้าผังอนุมัติเดียวกัน+ต้องแยกแยะได้จากคำขอปกติ)
+  หมายเหตุ: รหัสคำขอ/ชื่อหน่วย/จำนวนทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>รออนุมัติระดับ 1 — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item active" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+    <a class="nav-item" href="approval-queue-level2.html">รออนุมัติระดับ 2</a>
+    <a class="nav-item" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
+    <a class="nav-item" href="audit-trail.html">Audit Trail</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <span>บทบาท: เภสัชกร — ผู้อนุมัติระดับ 1 (ภก. สมชาย ตัวอย่าง) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>คำขอเบิกที่รอการอนุมัติระดับ 1</h1>
+      <p class="text-secondary">รายการคำขอเบิกจากทุกหน่วย รพ.สต. ในเครือข่ายที่รอการพิจารณาของท่าน (FT-002 / BL-004)</p>
+
+      <div class="alert-banner">
+        <strong>แจ้งเตือน "ขอปรึกษา" (FT-001 / BL-003):</strong> จนท. รพ.สต. ตัวอย่าง B ไม่เห็นด้วยกับยอดแนะนำเบิกของ ยา C และกด "ขอปรึกษา" เมื่อ 05/08/2569 09:14 น. — ส่งผ่าน LINE OA ถึงกลุ่มเภสัชกรแล้ว และบันทึกลง Audit Trail (BL-008)
+      </div>
+
+      <div class="alert-banner alert-danger">
+        <strong>คำขอเบิกฉุกเฉิน (FT-006 / BL-009):</strong> มีคำขอฉุกเฉินนอกรอบ 1 รายการรอดำเนินการ — ระบบส่งแจ้งเตือนทันทีให้ผู้อนุมัติทั้งสองระดับ กรุณาพิจารณาก่อนคำขอปกติ
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รหัสคำขอ</th>
+            <th>หน่วย รพ.สต.</th>
+            <th>ประเภท</th>
+            <th>วันที่ยื่นคำขอ</th>
+            <th>สถานะ</th>
+            <th>การดำเนินการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-alert">
+            <td>REQ-2569-05-A002</td>
+            <td>รพ.สต. ตัวอย่าง A</td>
+            <td><span class="badge badge-danger">ฉุกเฉิน</span></td>
+            <td>15/05/2569</td>
+            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
+          </tr>
+          <tr>
+            <td>REQ-2569-08-A001</td>
+            <td>รพ.สต. ตัวอย่าง A</td>
+            <td>ปกติ</td>
+            <td>01/08/2569</td>
+            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
+          </tr>
+          <tr>
+            <td>REQ-2569-08-B001</td>
+            <td>รพ.สต. ตัวอย่าง B</td>
+            <td>ปกติ</td>
+            <td>01/08/2569</td>
+            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
+          </tr>
+          <tr>
+            <td>REQ-2569-08-C001</td>
+            <td>รพ.สต. ตัวอย่าง C</td>
+            <td>ปกติ</td>
+            <td>02/08/2569</td>
+            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-002 (BL-004)</div>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!--
+  Role: เภสัชกร (pharmacist)
+  Journey Step: 1 — Login + Consent Banner (ครั้งแรก)
+  FT-ID: FT-023 (มาตรการคุ้มครองข้อมูลตาม PDPA)
+  BL-ID: BL-027, BL-030, BL-031
+  อ้างอิง AC: BL-030 Scenario 1/3 (แสดง Consent Banner ครั้งแรก, ไม่มีข้อความ Google Analytics)
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ยินยอมการใช้ข้อมูล (PDPA) — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+
+  <div class="modal-overlay">
+    <div class="modal" style="max-width:560px;">
+      <h2>การคุ้มครองข้อมูลส่วนบุคคล (PDPA)</h2>
+      <p>ระบบ SmartSync จะบันทึกข้อมูลการเข้าใช้งานของท่าน ได้แก่ ชื่อผู้ใช้งาน วันเวลาที่เข้า/ออกจากระบบ และ IP Address เพื่อวัตถุประสงค์ด้านความปลอดภัยและการตรวจสอบย้อนหลังตามกฎหมาย (พ.ร.บ. ว่าด้วยการกระทำความผิดเกี่ยวกับคอมพิวเตอร์ฯ) เป็นระยะเวลาอย่างน้อย 90 วัน</p>
+      <p class="text-secondary">ระบบไม่ใช้เครื่องมือวิเคราะห์การใช้งานเว็บใดๆ (เช่น Google Analytics) ในเฟสนี้</p>
+      <p>การกด "ยินยอม" หมายถึงท่านรับทราบและยินยอมตามเงื่อนไขข้างต้น — ระบบจะไม่แสดงหน้านี้ซ้ำอีกในการเข้าใช้งานครั้งถัดไป</p>
+      <div class="modal-actions">
+        <a class="btn btn-secondary" href="login.html">ยกเลิก</a>
+        <a class="btn btn-primary" href="approval-queue-level1.html">ยินยอม</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="proto-badge">Prototype only — FT-023 (BL-030)</div>
+</body>
+</html>

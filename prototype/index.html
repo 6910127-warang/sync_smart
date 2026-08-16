@@ -1,0 +1,64 @@
+<!--
+  Prototype Landing Page — SmartSync
+  ดูแลโดย /build-prototype (prototype-builder subagent) — ไม่ต้องแก้มือ
+  รายละเอียดบทบาทอ้างอิงจากตาราง Stakeholder ใน 01-requirements/01-spec/20260816-001-project-scope-and-problem-background.md
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>SmartSync — Prototype</title>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/components.css">
+<style>
+  .landing { max-width: 960px; margin: 0 auto; padding: var(--space-16) var(--space-8); }
+  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-top: var(--space-8); }
+  .role-card h2 { margin-bottom: var(--space-2); }
+  .role-card .role-org { margin-bottom: var(--space-4); }
+  .role-card.disabled { opacity: 0.55; }
+</style>
+</head>
+<body>
+<div class="landing">
+  <div class="text-display" style="color: var(--color-primary-700);">SmartSync</div>
+  <p>ระบบสนับสนุนการเบิกยา SmartSync เครือข่าย รพ.สต. อำเภอเมือง จังหวัดเชียงราย</p>
+  <div class="alert-banner">
+    นี่คือ Prototype แบบ static HTML/CSS เพื่อคลิกดูตรวจสอบความเข้าใจร่วมกับผู้ใช้จริงก่อนเข้าเฟสพัฒนา — <strong>ข้อมูลทั้งหมดที่แสดงเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลยา NCD จริง ไม่มีการบันทึก/ประมวลผลจริงเบื้องหลัง</strong>
+  </div>
+
+  <h2>เลือกบทบาทเพื่อเริ่มดู Prototype</h2>
+  <div class="role-grid">
+    <div class="card role-card">
+      <h2>เจ้าหน้าที่ รพ.สต.</h2>
+      <p class="role-org text-secondary">รพ.สต. แต่ละแห่ง</p>
+      <p>สร้างคำขอเบิก (ปกติ/ฉุกเฉิน), บันทึกรับยา, ดูยอดคงคลังของหน่วยตนเอง — เห็นเฉพาะข้อมูลของหน่วยตนเอง</p>
+      <a class="btn btn-primary" href="staff-hph/login.html">เริ่มดู Prototype</a>
+    </div>
+
+    <div class="card role-card">
+      <h2>เภสัชกร</h2>
+      <p class="role-org text-secondary">รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</p>
+      <p>พิจารณา/อนุมัติคำขอเบิกแบบสองระดับ (ผู้อนุมัติระดับ 1 + ผู้ตรวจสอบระดับ 2) และคอนเฟิร์มส่งออกไฟล์เบิกยา — อ่าน/เขียนทั้งเครือข่าย</p>
+      <a class="btn btn-primary" href="pharmacist/login.html">เริ่มดู Prototype</a>
+    </div>
+
+    <div class="card role-card">
+      <h2>ผู้บริหาร</h2>
+      <p class="role-org text-secondary">รพ.แม่ข่าย / สำนักงานสาธารณสุขอำเภอ</p>
+      <p>ดู Dashboard สรุปภาพรวมทั้งเครือข่าย พร้อม drill-down ดูรายละเอียดรายหน่วยได้ — อ่านอย่างเดียว (Read-only)</p>
+      <a class="btn btn-primary" href="executive/login.html">เริ่มดู Prototype</a>
+    </div>
+
+    <div class="card role-card">
+      <h2>ผู้ดูแลระบบ</h2>
+      <p class="role-org text-secondary">รพ.แม่ข่าย (IT)</p>
+      <p>จัดการผู้ใช้/สิทธิ์/ตั้งค่าระบบ และแก้ไขข้อมูลธุรกิจได้เฉพาะกรณีฉุกเฉินพร้อม audit log — สิทธิ์เต็มด้านระบบ</p>
+      <a class="btn btn-primary" href="admin/login.html">เริ่มดู Prototype</a>
+    </div>
+  </div>
+
+  <p class="proto-note" style="margin-top: var(--space-8);">ดูทะเบียนหน้าจอทั้งหมดที่ <code>prototype/screen-map.md</code></p>
+</div>
+<div class="proto-badge">Prototype only — ดูรายละเอียดที่ screen-map.md</div>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!--
+  Role: เภสัชกร (pharmacist) — ผู้ตรวจสอบระดับ 2
+  Journey Step: 7, 8 — ตรวจสอบซ้ำและยืนยัน / ตรวจสอบว่าเป็นคนเดียวกับผู้อนุมัติระดับ 1 หรือไม่
+  FT-ID: FT-002 (อนุมัติคำขอเบิกแบบสองระดับ)
+  BL-ID: BL-004
+  อ้างอิง AC: BL-004 Scenario 3 (อนุมัติระดับ 2 โดยคนละคน — happy path), Scenario 4 (เภสัชกรคนเดียวกันพยายามอนุมัติสองระดับ — error/RBAC)
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง — กรณีปุ่มปิดใช้งานด้านล่างเป็นตัวอย่างประกอบเพื่อสาธิตกฎ RBAC เท่านั้น ไม่ใช่การตรวจสอบแบบ interactive จริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ตรวจสอบระดับ 2 — REQ-2569-07-A001 — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+    <a class="nav-item active" href="approval-queue-level2.html">รออนุมัติระดับ 2</a>
+    <a class="nav-item" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
+    <a class="nav-item" href="audit-trail.html">Audit Trail</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <span>บทบาท: เภสัชกร — ผู้ตรวจสอบระดับ 2 (ภญ. สมหญิง ตัวอย่าง) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <p><a class="btn-text" href="approval-queue-level2.html">&larr; กลับไปรายการรออนุมัติระดับ 2</a></p>
+      <h1>คำขอเบิก REQ-2569-07-A001</h1>
+      <p>หน่วย: รพ.สต. ตัวอย่าง A &nbsp;|&nbsp; สถานะปัจจุบัน: <span class="badge badge-info">รอการอนุมัติระดับ 2</span></p>
+      <p class="text-secondary">อนุมัติระดับ 1 โดย ภก. สมชาย ตัวอย่าง เมื่อ 02/07/2569 — คนละคนกับท่าน (ภญ. สมหญิง ตัวอย่าง) จึงมีสิทธิ์ยืนยันระดับ 2 ได้ตามปกติ</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รายการยา</th>
+            <th class="num">จำนวนที่อนุมัติระดับ 1</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ยา A</td>
+            <td class="num">150</td>
+          </tr>
+          <tr>
+            <td>ยา B</td>
+            <td class="num">60</td>
+          </tr>
+          <tr>
+            <td>ยา C</td>
+            <td class="num">90</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="approval-level2-confirm.html">ยืนยันระดับ 2</a>
+      </p>
+
+      <div class="card" style="max-width: 640px; margin-top: var(--space-8); border-left: 3px solid var(--color-danger);">
+        <h2>ตัวอย่าง: กรณีระบบปฏิเสธการอนุมัติระดับ 2 (BL-004 Scenario 4)</h2>
+        <p class="text-secondary">คำขอ REQ-2569-07-B001 (หน่วย รพ.สต. ตัวอย่าง B) — ผู้อนุมัติระดับ 1 คือ ภญ. สมหญิง ตัวอย่าง ซึ่งเป็นบัญชีเดียวกับที่ล็อกอินอยู่ในขณะนี้ ระบบจึงต้องปฏิเสธการยืนยันระดับ 2 ของคำขอนี้ตามกฎห้ามคนเดียวกันอนุมัติซ้ำสองระดับ</p>
+        <span class="btn btn-secondary" style="opacity: 0.5; pointer-events: none;" aria-disabled="true">ยืนยันระดับ 2 (ปิดใช้งาน — ท่านเป็นผู้อนุมัติระดับ 1 ของคำขอนี้แล้ว)</span>
+        <p class="proto-note" style="margin-top: var(--space-2);">ตัวอย่างประกอบเพื่อแสดงพฤติกรรม UI เท่านั้น — ไม่ใช่ปุ่มที่ทำงานจริงในต้นแบบนี้</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-002 (BL-004)</div>
+</body>
+</html>

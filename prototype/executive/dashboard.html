@@ -1,0 +1,100 @@
+<!--
+  Role: ผู้บริหาร (executive) — สิทธิ์ Read-only ทั้งเครือข่าย
+  Journey Step: 2 — เปิด Dashboard เห็นภาพรวมคงคลังทั้งเครือข่ายในหน้าเดียว
+  FT-ID: FT-014 (ภาพรวมคงคลังทั้งเครือข่ายพร้อม Drill-down รายหน่วย)
+  BL-ID: BL-016
+  อ้างอิง AC: BL-016 Scenario 1 (เห็นสรุปยอดคงคลังทั้งเครือข่ายในหน้าเดียว — happy path), Scenario 3 (หน่วยที่ยังไม่มีข้อมูลแสดงว่า "ยังไม่มีข้อมูล" ไม่ใช่ 0)
+  หมายเหตุ: ชื่อหน่วยงาน/จำนวนทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลจริง — จำนวนหน่วย รพ.สต. 29 แห่งอ้างอิงจากบริบทโครงการจริงใน CLAUDE.md เท่านั้น ตัวเลขอื่นในหน้านี้เป็นตัวอย่างประกอบ
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ภาพรวมเครือข่าย — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<style>
+  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); margin-bottom: var(--space-8); }
+  .kpi-card .kpi-label { margin-bottom: var(--space-2); }
+  .kpi-card .kpi-value { color: var(--color-primary-700); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item active" href="dashboard.html">ภาพรวมเครือข่าย</a>
+    <a class="nav-item" href="trend-analysis.html">แนวโน้มการเบิก-จ่าย</a>
+    <a class="nav-item" href="report-filter.html">ส่งออกรายงาน</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: เครือข่าย รพ.สต. อำเภอเมือง เชียงราย (ทุกหน่วย)</span>
+      <span>บทบาท: ผู้บริหาร — Read-only (นพ./ภญ. ตัวอย่าง ผู้บริหาร) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1 class="text-display" style="font-size: var(--font-size-h1); line-height: var(--line-height-h1);">ภาพรวมคงคลังยาทั้งเครือข่าย</h1>
+      <p class="text-secondary">สรุปสถานการณ์คงคลังของ รพ.สต. ทั้ง 29 แห่งในหน้าเดียว (มุมมองอ่านอย่างเดียว) — ข้อมูลตัวอย่างประกอบเพื่อดูการจัดวางหน้าจอเท่านั้น</p>
+
+      <div class="kpi-grid">
+        <div class="card kpi-card">
+          <div class="kpi-label text-secondary">จำนวนหน่วย รพ.สต. ในเครือข่าย</div>
+          <div class="kpi-value text-display">29</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label text-secondary">หน่วยที่มีรายการยาต่ำกว่าเกณฑ์ Safety Stock</div>
+          <div class="kpi-value text-display">3</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label text-secondary">คำขอเบิกที่ยังไม่จ่ายทั้งเครือข่าย</div>
+          <div class="kpi-value text-display">5</div>
+        </div>
+      </div>
+
+      <h2>สถานะคงคลังรายหน่วย</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>หน่วย รพ.สต.</th>
+            <th class="num">รายการยาต่ำกว่าเกณฑ์</th>
+            <th>สถานะภาพรวม</th>
+            <th>การดำเนินการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-alert">
+            <td>รพ.สต. ตัวอย่าง C</td>
+            <td class="num">2</td>
+            <td><span class="badge badge-danger">มียาขาด</span></td>
+            <td><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
+          </tr>
+          <tr>
+            <td>รพ.สต. ตัวอย่าง A</td>
+            <td class="num">1</td>
+            <td><span class="badge badge-warning">ควรติดตาม</span></td>
+            <td><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
+          </tr>
+          <tr>
+            <td>รพ.สต. ตัวอย่าง B</td>
+            <td class="num">0</td>
+            <td><span class="badge badge-success">ปกติ</span></td>
+            <td><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
+          </tr>
+          <tr>
+            <td>รพ.สต. ตัวอย่าง D (เพิ่งเข้าร่วมเครือข่าย)</td>
+            <td class="num">—</td>
+            <td><span class="badge badge-info">ยังไม่มีข้อมูล</span></td>
+            <td><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="trend-analysis.html">ดูแนวโน้มการเบิก-จ่ายทั้งเครือข่าย</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-014 (BL-016)</div>
+</body>
+</html>

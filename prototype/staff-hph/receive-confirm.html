@@ -1,0 +1,53 @@
+<!--
+  Role: เจ้าหน้าที่ รพ.สต. (staff-hph)
+  Journey Step: 9 — ยืนยันรับยาเข้าคลังของหน่วยตนเอง (ขั้นตอนยืนยันก่อนบันทึกจริง)
+  FT-ID: FT-003 (ยืนยันรับยาเข้าคลัง)
+  BL-ID: BL-006
+  อ้างอิง: DESIGN.md §3.7/§4.3 Confirm-before-critical-action — ยืนยันรับยาเปลี่ยนยอดคงคลังจริง จึงต้องมี confirm dialog ก่อน
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ยืนยันรับยา — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="stock-dashboard.html">ภาพรวมคงคลัง</a>
+    <a class="nav-item" href="requisition-new.html">สร้างคำขอเบิกยา</a>
+    <a class="nav-item active" href="requisition-list.html">รายการคำขอเบิก</a>
+    <a class="nav-item" href="emergency-requisition.html">เบิกฉุกเฉิน</a>
+    <a class="nav-item" href="notifications.html">การแจ้งเตือน</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.สต. ตัวอย่าง A</span>
+      <span>บทบาท: เจ้าหน้าที่ รพ.สต. | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>คำขอเบิก REQ-2569-05-A001</h1>
+      <p>สถานะปัจจุบัน: <span class="badge badge-success">จ่ายแล้ว</span></p>
+      <p class="text-secondary">ไฟล์ Excel ถูกดาวน์โหลดแล้ว — เมื่อยาถูกจัดส่งมาถึงหน่วยจริง กรุณายืนยันการรับยาเพื่ออัปเดตยอดคงคลัง</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay">
+  <div class="modal">
+    <h2>ยืนยันการรับยาเข้าคลัง?</h2>
+    <p>ท่านกำลังจะยืนยันว่าหน่วย รพ.สต. ตัวอย่าง A ได้รับยาตามคำขอเบิก REQ-2569-05-A001 ครบถ้วนแล้ว เมื่อยืนยันแล้ว ยอดคงคลังของหน่วยจะถูกอัปเดตทันที และสถานะคำขอจะเปลี่ยนเป็น "รับแล้ว"</p>
+    <div class="modal-actions">
+      <a class="btn btn-secondary" href="requisition-detail.html">ยกเลิก</a>
+      <a class="btn btn-primary" href="receive-confirmed.html">ยืนยันรับยา</a>
+    </div>
+  </div>
+</div>
+
+<div class="proto-badge">Prototype only — FT-003 (BL-006)</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+/*
+  SmartSync Prototype — Shared Component Classes
+  แหล่งอ้างอิง: DESIGN.md §3 (UI Components & Patterns) และ §4 (UX Guidelines & Rules) — วันที่สร้างเอกสารอ้างอิง 20260816
+  แก้ไข/เพิ่ม class ใหม่เฉพาะเมื่อ DESIGN.md มี pattern ใหม่ที่ยังไม่ครอบคลุมที่นี่ — ห้ามเพิ่มสี/spacing นอก tokens.css
+*/
+
+/* App shell — DESIGN.md §3.5 Navigation */
+.app-shell { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 240px; flex-shrink: 0; background: var(--color-bg-muted);
+  padding: var(--space-6) var(--space-4); border-right: 1px solid var(--color-border);
+}
+.sidebar .brand {
+  font-size: var(--font-size-h2); font-weight: 500; color: var(--color-primary-700);
+  margin-bottom: var(--space-8); padding: 0 var(--space-4);
+}
+.sidebar .nav-item {
+  display: block; padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm);
+  color: var(--color-text-primary); text-decoration: none; margin-bottom: var(--space-1);
+  font-size: var(--font-size-body);
+}
+.sidebar .nav-item.active { background: var(--color-primary-100); color: var(--color-primary-700); font-weight: 500; }
+.main { flex: 1; min-width: var(--container-min); max-width: var(--container-max); }
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--space-4) var(--space-8); border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-small); color: var(--color-text-secondary);
+  background: var(--color-bg-paper);
+}
+.content { padding: var(--space-8); }
+
+/* Buttons — DESIGN.md §3.1 (max 1 .btn-primary visible per screen) */
+.btn {
+  display: inline-block; min-height: 40px; padding: 0 var(--space-4);
+  border-radius: var(--radius-sm); font-size: var(--font-size-body); cursor: pointer;
+  text-decoration: none; border: none; line-height: 40px;
+  font-family: var(--font-family-thai);
+}
+.btn-primary { background: var(--color-primary-600); color: #fff; }
+.btn-primary:hover { background: var(--color-primary-700); }
+.btn-secondary { background: transparent; border: 1px solid var(--color-border); color: var(--color-text-primary); }
+.btn-danger { background: var(--color-danger); color: #fff; }
+.btn-text { background: none; border: none; color: var(--color-primary-700); padding: 0; }
+
+/* Form inputs — DESIGN.md §3.2 */
+.form-field { margin-bottom: var(--space-4); }
+.form-field label { display: block; margin-bottom: var(--space-2); font-size: var(--font-size-small); }
+.form-field input {
+  width: 100%; height: 40px; padding: 0 var(--space-3);
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: var(--font-size-body);
+  font-family: var(--font-family-thai);
+}
+.form-field input:focus { outline: none; border: 2px solid var(--color-primary-600); }
+.form-field input.numeric { text-align: right; }
+.form-field .field-error { color: var(--color-danger); font-size: var(--font-size-small); margin-top: var(--space-1); }
+.form-field .field-help { color: var(--color-text-secondary); font-size: var(--font-size-small); margin-top: var(--space-1); }
+
+/* Data table — DESIGN.md §3.3 */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { text-align: left; font-size: var(--font-size-small); color: var(--color-text-secondary); border-bottom: 1px solid var(--color-border); padding: var(--space-3); position: sticky; top: 0; background: var(--color-bg-paper); }
+.data-table td { padding: var(--space-3); border-bottom: 1px solid var(--color-border); }
+.data-table tbody tr:nth-child(even) { background: var(--color-bg-muted); }
+.data-table td.num { text-align: right; }
+.data-table td.num input.numeric { width: 100px; }
+.data-table tr.row-alert td:first-child { border-left: 3px solid var(--color-danger); }
+
+/* Status badge — DESIGN.md §3.4 */
+.badge { display: inline-block; padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); font-size: var(--font-size-caption); background: var(--color-primary-100); color: var(--color-primary-700); }
+.badge-warning { background: #F3E7D5; color: var(--color-warning); }
+.badge-danger { background: #F5DEDA; color: var(--color-danger); }
+.badge-success { background: #DCEAE0; color: var(--color-success); }
+.badge-info { background: #DDE6F1; color: var(--color-info); }
+
+/* Card — DESIGN.md §3.6 */
+.card { background: var(--color-bg-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-card); padding: var(--space-4); }
+
+/* Modal / confirm dialog — DESIGN.md §3.7 */
+.modal-overlay { position: fixed; inset: 0; background: rgba(46,43,38,0.4); display: flex; align-items: center; justify-content: center; }
+.modal { background: var(--color-bg-surface); border-radius: var(--radius-md); padding: var(--space-6); max-width: 480px; }
+.modal .modal-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-6); }
+
+/* Alert banner — DESIGN.md §3.8 */
+.alert-banner { padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); background: var(--color-primary-100); color: var(--color-primary-700); font-size: var(--font-size-small); margin-bottom: var(--space-4); }
+.alert-banner.alert-warning { background: #F3E7D5; color: var(--color-warning); }
+.alert-banner.alert-danger { background: #F5DEDA; color: var(--color-danger); }
+
+/* Prototype-only chrome — not part of the real product */
+.proto-badge { position: fixed; bottom: var(--space-4); right: var(--space-4); background: var(--color-text-primary); color: #fff; font-size: var(--font-size-caption); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); opacity: 0.85; z-index: 100; }
+.proto-note { color: var(--color-text-secondary); font-size: var(--font-size-caption); font-style: italic; }

@@ -1,0 +1,47 @@
+<!--
+  Role: เภสัชกร (pharmacist) — ผู้อนุมัติระดับ 2
+  Journey Step: 10, 11 — สร้างไฟล์ Excel + ส่งอีเมล/LINE OA สำเร็จ / สถานะเปลี่ยนเป็น "จ่ายแล้ว" ทันที
+  FT-ID: FT-017 (คอนเฟิร์มส่งออกไฟล์เบิกยาและดาวน์โหลดสำเนา)
+  BL-ID: BL-020, BL-005
+  อ้างอิง AC: BL-020 Scenario 1 (สร้างไฟล์+ส่งอีเมล/LINE OA+เปลี่ยนสถานะจ่ายแล้ว), BL-005 Scenario 2 (จ่ายแล้วทันทีไม่รอ INVC ยืนยันกลับ)
+  หมายเหตุ: ข้อมูลที่แสดงในหน้านี้เป็นข้อมูลตัวอย่าง (illustrative) ทั้งหมด ไม่ใช่ข้อมูลจริง — ไม่มีไฟล์/อีเมลจริงถูกส่งในต้นแบบนี้
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>คอนเฟิร์มสำเร็จ — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+    <a class="nav-item" href="approval-queue-level2.html">รออนุมัติระดับ 2</a>
+    <a class="nav-item active" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
+    <a class="nav-item" href="audit-trail.html">Audit Trail</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <span>บทบาท: เภสัชกร — ผู้อนุมัติระดับ 2 (ภญ. สมหญิง ตัวอย่าง) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>คำขอเบิก REQ-2569-06-A001</h1>
+      <p>สถานะปัจจุบัน: <span class="badge badge-success">จ่ายแล้ว</span></p>
+
+      <div class="alert-banner">คอนเฟิร์มสำเร็จเมื่อ 04/06/2569 14:10 น. — ระบบสร้างไฟล์ Excel (REQ-2569-06-A001.xlsx), ส่งเข้าอีเมล + LINE OA ไปยังฝ่ายคลังยา รพ.แม่ข่ายแล้ว และเปลี่ยนสถานะเป็น "จ่ายแล้ว" ทันที โดยไม่รอการยืนยันย้อนกลับจากฝ่ายคลังยาว่านำเข้า INVC สำเร็จ (BL-005)</div>
+
+      <p class="text-secondary">ขั้นตอนถัดไป: หน่วย รพ.สต. ตัวอย่าง A จะดาวน์โหลดไฟล์นี้เพื่อเก็บสำเนา (BL-020b) จากนั้นจึงยืนยันรับยาเข้าคลัง (BL-006) — ดูตัวอย่างมุมมองฝั่ง จนท. รพ.สต. ได้ที่ <code>prototype/staff-hph/requisition-detail.html</code></p>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="audit-trail.html">ดู Audit Trail ของคำขอนี้</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-017 (BL-020, BL-005)</div>
+</body>
+</html>

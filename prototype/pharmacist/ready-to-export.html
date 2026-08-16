@@ -1,0 +1,60 @@
+<!--
+  Role: เภสัชกร (pharmacist) — ผู้อนุมัติระดับ 2
+  Journey Step: 9 — สถานะ "พร้อมส่งออก" (รายการรอคอนเฟิร์มส่งออกไฟล์)
+  FT-ID: FT-002 (อนุมัติคำขอเบิกแบบสองระดับ), FT-017 (คอนเฟิร์มส่งออกไฟล์เบิกยาและดาวน์โหลดสำเนา)
+  BL-ID: BL-005, BL-020
+  อ้างอิง AC: BL-005 Scenario 1 (สถานะ "พร้อมส่งออก"), BL-020 Scenario 3 (ปุ่มคอนเฟิร์มแสดงเฉพาะคำขอที่สถานะพร้อมส่งออกแล้วเท่านั้น)
+  หมายเหตุ: รหัสคำขอ/ชื่อหน่วยทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลจริง
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>พร้อมส่งออก / คอนเฟิร์ม — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+    <a class="nav-item" href="approval-queue-level2.html">รออนุมัติระดับ 2</a>
+    <a class="nav-item active" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
+    <a class="nav-item" href="audit-trail.html">Audit Trail</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <span>บทบาท: เภสัชกร — ผู้อนุมัติระดับ 2 (ภญ. สมหญิง ตัวอย่าง) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>คำขอเบิกที่พร้อมส่งออก</h1>
+      <p class="text-secondary">คำขอในรายการนี้อนุมัติครบสองระดับแล้ว เฉพาะเภสัชกรผู้อนุมัติระดับ 2 เท่านั้นที่กด "คอนเฟิร์ม" ได้ เพื่อสร้างไฟล์ Excel และส่งไปฝ่ายคลังยา รพ.แม่ข่าย (FT-017 / BL-020)</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รหัสคำขอ</th>
+            <th>หน่วย รพ.สต.</th>
+            <th>วันที่อนุมัติครบสองระดับ</th>
+            <th>สถานะ</th>
+            <th>การดำเนินการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>REQ-2569-06-A001</td>
+            <td>รพ.สต. ตัวอย่าง A</td>
+            <td>03/06/2569</td>
+            <td><span class="badge">พร้อมส่งออก</span></td>
+            <td><a class="btn-text" href="export-confirm.html">คอนเฟิร์ม</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-017 (BL-020)</div>
+</body>
+</html>

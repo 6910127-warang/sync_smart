@@ -1,0 +1,86 @@
+<!--
+  Role: เจ้าหน้าที่ รพ.สต. (staff-hph)
+  Journey Step: 2, 3, 4, 5 — เห็นยอดแนะนำเบิกอัตโนมัติ / กรอกยอดคงเหลือปัจจุบัน / กระทบยอดที่แจ้งเองกับยอดคงคลังที่คำนวณ / (ทางเลือก) กด "ขอปรึกษา"
+  FT-ID: FT-001 (สร้างคำขอเบิกยาประจำเดือน), FT-008 (กระทบยอดคงเหลือที่แจ้งเองกับยอดคงคลังที่ระบบคำนวณ)
+  BL-ID: BL-001, BL-002, BL-003, BL-032
+  อ้างอิง AC: BL-001 Scenario 1/3 (ยอดแนะนำต่อรายการ), BL-002 Scenario 1 (กรอกยอดคงเหลือ+ยืนยัน), BL-032 Scenario 1 ([รอยืนยัน] เกณฑ์กระทบยอด)
+  หมายเหตุ: ชื่อยา/จำนวนทั้งหมดเป็นข้อมูลตัวอย่าง (illustrative) ไม่ใช่ข้อมูลยา NCD จริง — เกณฑ์การกระทบยอด (BL-032) ยังไม่ยืนยันจากเภสัชกรเจ้าของข้อกำหนด แสดงเป็นตัวอย่างประกอบเท่านั้น
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>สร้างคำขอเบิกยาประจำเดือน — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="stock-dashboard.html">ภาพรวมคงคลัง</a>
+    <a class="nav-item active" href="requisition-new.html">สร้างคำขอเบิกยา</a>
+    <a class="nav-item" href="requisition-list.html">รายการคำขอเบิก</a>
+    <a class="nav-item" href="emergency-requisition.html">เบิกฉุกเฉิน</a>
+    <a class="nav-item" href="notifications.html">การแจ้งเตือน</a>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <span>หน่วยงาน: รพ.สต. ตัวอย่าง A</span>
+      <span>บทบาท: เจ้าหน้าที่ รพ.สต. | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
+    </div>
+    <div class="content">
+      <h1>สร้างคำขอเบิกยาประจำเดือน — สิงหาคม 2569</h1>
+      <p class="text-secondary">ยอดแนะนำเบิกคำนวณอัตโนมัติจากเกณฑ์ Safety Stock ของหน่วยท่าน — กรุณากรอกยอดคงเหลือปัจจุบันของแต่ละรายการยาก่อนยืนยันคำขอ</p>
+
+      <div class="alert-banner">
+        <strong>ตัวอย่างการกระทบยอด (FT-008 / BL-032):</strong> ยอดคงเหลือที่ท่านกรอก (ยา A = 80) กับยอดคงคลังที่ระบบคำนวณจากประวัติรับ-จ่าย (82) ไม่ตรงกันเล็กน้อย
+        <span class="proto-note">— พฤติกรรมเมื่อพบความคลาดเคลื่อน (ต้องแจ้งเตือน/กระทบยอดอย่างไร และเกณฑ์ที่ยอมรับได้เท่าใด) ยังเป็น <code>[รอยืนยัน]</code> จากเภสัชกรเจ้าของข้อกำหนด แสดงเป็นตัวอย่างประกอบเท่านั้น</span>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รายการยา</th>
+            <th class="num">ยอดแนะนำเบิก (ระบบคำนวณ)</th>
+            <th class="num">ยอดคงเหลือปัจจุบัน (กรอกเอง)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ยา A</td>
+            <td class="num">150</td>
+            <td class="num"><input type="text" class="numeric" value="80"></td>
+          </tr>
+          <tr>
+            <td>ยา B</td>
+            <td class="num">60</td>
+            <td class="num"><input type="text" class="numeric" value="210"></td>
+          </tr>
+          <tr>
+            <td>ยา C</td>
+            <td class="num">90</td>
+            <td class="num"><input type="text" class="numeric" value="160"></td>
+          </tr>
+          <tr>
+            <td>ยา D</td>
+            <td class="num">0</td>
+            <td class="num"><input type="text" class="numeric" value="300"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="form-field" style="margin-top: var(--space-6);">
+        <p>ไม่เห็นด้วยกับยอดแนะนำเบิกรายการใด? กดปุ่มด้านล่างเพื่อขอคำปรึกษาจากกลุ่มเภสัชกรผ่าน LINE OA ก่อนยืนยันคำขอ (FT-001 / BL-003)</p>
+        <a class="btn btn-secondary" href="requisition-consult-sent.html">ขอปรึกษา</a>
+      </div>
+
+      <p style="margin-top: var(--space-8);">
+        <a class="btn btn-primary" href="requisition-confirm.html">ยืนยันคำขอเบิก</a>
+      </p>
+    </div>
+  </div>
+</div>
+<div class="proto-badge">Prototype only — FT-001 / FT-008</div>
+</body>
+</html>
