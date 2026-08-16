@@ -18,6 +18,8 @@
 
 **วิธีสร้าง/แก้ไข requirement ใหม่:** ใช้ skill `/new-requirement` (`.claude/skills/new-requirement/`) ซึ่งจะส่งต่อให้ subagent `requirement-writer` (`.claude/agents/requirement-writer.md`) เป็นผู้สัมภาษณ์ผู้ใช้ (ถามคำถามพร้อมตัวเลือกอย่างน้อย 3 แนวทางเสมอ), เขียน spec, อัปเดต backlog และ log ให้ครบตาม convention ด้านล่าง — ใช้ workflow นี้แทนการแก้ไฟล์เองตรงๆ ทุกครั้งที่มี raw requirement ใหม่จากผู้ใช้
 
+**วิธีตรวจสอบว่า backlog ตรงกับ spec หรือไม่ (up to date):** ใช้ skill `/check-backlog-sync` (`.claude/skills/check-backlog-sync/`) ซึ่งจะส่งต่อให้ subagent `backlog-sync-checker` (`.claude/agents/backlog-sync-checker.md`) ตรวจสอบทุกไฟล์ spec เทียบกับ `01-requirements/backlog.md`, แก้ไขจุดที่ชัดเจนให้อัตโนมัติ, และถามผู้ใช้เมื่อพบจุดที่ต้องตัดสินใจ — เรียกใช้เป็นระยะหลังแก้ spec หลายจุด หรือเมื่อสงสัยว่า backlog อาจไม่ตรงกับ spec แล้ว
+
 ## โครงสร้างเอกสาร (Document Structure)
 
 - **`01-requirements/01-spec/{YYYYMMDD}-{RUNNING_NO}-{topic-slug}.md`** — เอกสาร requirement แยกตามหัวข้อ/Epic หนึ่งไฟล์ต่อหนึ่งเรื่อง (ไม่ใช่ไฟล์รวมเดียวเหมือนเดิม) โดย `RUNNING_NO` นับต่อเนื่องทั้งโปรเจกต์ (ไม่รีเซ็ต) และ `topic-slug` เป็น kebab-case ภาษาอังกฤษ
