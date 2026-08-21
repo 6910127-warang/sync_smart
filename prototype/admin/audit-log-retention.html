@@ -10,6 +10,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Audit Trail / Access Log — การเก็บรักษาข้อมูล — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
@@ -24,9 +25,13 @@
     <a class="nav-item active" href="audit-log-retention.html">Audit Trail / การเก็บรักษาข้อมูล</a>
     <a class="nav-item" href="system-status.html">การตั้งค่าระบบ</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      </div>
       <span>บทบาท: ผู้ดูแลระบบ (Admin) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -47,22 +52,22 @@
         </thead>
         <tbody>
           <tr>
-            <td>07/06/2569 10:20</td>
-            <td>admin.it.example</td>
-            <td>แก้ไขข้อมูลธุรกิจกรณีฉุกเฉิน (REQ-2569-07-A003)</td>
-            <td>วันนี้</td>
+            <td data-label="วันเวลา">07/06/2569 10:20</td>
+            <td data-label="ผู้กระทำ">admin.it.example</td>
+            <td data-label="เหตุการณ์">แก้ไขข้อมูลธุรกิจกรณีฉุกเฉิน (REQ-2569-07-A003)</td>
+            <td data-label="อายุข้อมูล">วันนี้</td>
           </tr>
           <tr class="row-alert">
-            <td>09/03/2569 09:00</td>
-            <td>ภญ. สมหญิง ตัวอย่าง</td>
-            <td>คอนเฟิร์มส่งออกไฟล์คำขอเบิก REQ-2569-03-B002</td>
-            <td>ครบ 90 วันพอดี — ยังคงอยู่ในระบบ (BL-029 Scenario 3 — boundary)</td>
+            <td data-label="วันเวลา">09/03/2569 09:00</td>
+            <td data-label="ผู้กระทำ">ภญ. สมหญิง ตัวอย่าง</td>
+            <td data-label="เหตุการณ์">คอนเฟิร์มส่งออกไฟล์คำขอเบิก REQ-2569-03-B002</td>
+            <td data-label="อายุข้อมูล">ครบ 90 วันพอดี — ยังคงอยู่ในระบบ (BL-029 Scenario 3 — boundary)</td>
           </tr>
           <tr>
-            <td>15/01/2569 14:00</td>
-            <td>จนท.รพ.สต. ตัวอย่าง บี</td>
-            <td>ยืนยันรับยา REQ-2569-01-B001</td>
-            <td>เกิน 90 วันแล้ว — ยังคงเก็บต่อเนื่อง ไม่ถูกลบ (BL-029 Scenario 2)</td>
+            <td data-label="วันเวลา">15/01/2569 14:00</td>
+            <td data-label="ผู้กระทำ">จนท.รพ.สต. ตัวอย่าง บี</td>
+            <td data-label="เหตุการณ์">ยืนยันรับยา REQ-2569-01-B001</td>
+            <td data-label="อายุข้อมูล">เกิน 90 วันแล้ว — ยังคงเก็บต่อเนื่อง ไม่ถูกลบ (BL-029 Scenario 2)</td>
           </tr>
         </tbody>
       </table>
@@ -80,25 +85,25 @@
         </thead>
         <tbody>
           <tr>
-            <td>07/06/2569 09:15</td>
-            <td>admin.it.example</td>
-            <td><span class="badge badge-success">Login สำเร็จ</span></td>
-            <td>10.0.1.10 (ตัวอย่าง)</td>
-            <td>วันนี้</td>
+            <td data-label="วันเวลา">07/06/2569 09:15</td>
+            <td data-label="ผู้ใช้งาน">admin.it.example</td>
+            <td data-label="เหตุการณ์"><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td data-label="IP Address">10.0.1.10 (ตัวอย่าง)</td>
+            <td data-label="อายุข้อมูล">วันนี้</td>
           </tr>
           <tr class="row-alert">
-            <td>09/03/2569 08:45</td>
-            <td>ภญ. สมหญิง ตัวอย่าง</td>
-            <td><span class="badge badge-success">Login สำเร็จ</span></td>
-            <td>10.0.14.60 (ตัวอย่าง)</td>
-            <td>ครบ 90 วันพอดี — ยังคงอยู่ในระบบ (BL-029 Scenario 3 — boundary)</td>
+            <td data-label="วันเวลา">09/03/2569 08:45</td>
+            <td data-label="ผู้ใช้งาน">ภญ. สมหญิง ตัวอย่าง</td>
+            <td data-label="เหตุการณ์"><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td data-label="IP Address">10.0.14.60 (ตัวอย่าง)</td>
+            <td data-label="อายุข้อมูล">ครบ 90 วันพอดี — ยังคงอยู่ในระบบ (BL-029 Scenario 3 — boundary)</td>
           </tr>
           <tr>
-            <td>15/01/2569 07:58</td>
-            <td>จนท.รพ.สต. ตัวอย่าง บี</td>
-            <td><span class="badge badge-success">Login สำเร็จ</span></td>
-            <td>10.0.12.44 (ตัวอย่าง)</td>
-            <td>เกิน 90 วันแล้ว — ยังคงเก็บต่อเนื่อง ไม่ถูกลบ (BL-029 Scenario 2)</td>
+            <td data-label="วันเวลา">15/01/2569 07:58</td>
+            <td data-label="ผู้ใช้งาน">จนท.รพ.สต. ตัวอย่าง บี</td>
+            <td data-label="เหตุการณ์"><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td data-label="IP Address">10.0.12.44 (ตัวอย่าง)</td>
+            <td data-label="อายุข้อมูล">เกิน 90 วันแล้ว — ยังคงเก็บต่อเนื่อง ไม่ถูกลบ (BL-029 Scenario 2)</td>
           </tr>
         </tbody>
       </table>
@@ -110,5 +115,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-024 (BL-029)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

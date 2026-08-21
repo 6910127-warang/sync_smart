@@ -7,15 +7,26 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SmartSync — Prototype</title>
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/components.css">
 <style>
-  .landing { max-width: 960px; margin: 0 auto; padding: var(--space-16) var(--space-8); }
-  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-top: var(--space-8); }
+  /* Mobile-first (ฐาน = mobile): ขอบหน้าจอ --space-4, role card 1 คอลัมน์เต็มความกว้าง */
+  .landing { max-width: 960px; margin: 0 auto; padding: var(--space-8) var(--space-4); }
+  .role-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-6); margin-top: var(--space-8); }
   .role-card h2 { margin-bottom: var(--space-2); }
   .role-card .role-org { margin-bottom: var(--space-4); }
   .role-card.disabled { opacity: 0.55; }
+  /* Tablet (768px+): ขอบหน้าจอ --space-6, role card 2 คอลัมน์ */
+  @media (min-width: 768px) {
+    .landing { padding: var(--space-12) var(--space-6); }
+    .role-grid { grid-template-columns: 1fr 1fr; }
+  }
+  /* Desktop (1024px+): ขอบหน้าจอ --space-12 */
+  @media (min-width: 1024px) {
+    .landing { padding: var(--space-16) var(--space-8); }
+  }
 </style>
 </head>
 <body>

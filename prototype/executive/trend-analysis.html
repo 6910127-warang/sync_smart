@@ -10,6 +10,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>แนวโน้มการเบิก-จ่าย — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
@@ -22,9 +23,13 @@
     <a class="nav-item active" href="trend-analysis.html">แนวโน้มการเบิก-จ่าย</a>
     <a class="nav-item" href="report-filter.html">ส่งออกรายงาน</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: เครือข่าย รพ.สต. อำเภอเมือง เชียงราย (ทุกหน่วย)</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: เครือข่าย รพ.สต. อำเภอเมือง เชียงราย (ทุกหน่วย)</span>
+      </div>
       <span>บทบาท: ผู้บริหาร — Read-only (นพ./ภญ. ตัวอย่าง ผู้บริหาร) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -50,28 +55,28 @@
         </thead>
         <tbody>
           <tr>
-            <td>รพ.สต. ตัวอย่าง A</td>
-            <td class="num">140</td>
-            <td class="num">145</td>
-            <td class="num">150</td>
-            <td class="num">150</td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง A</td>
+            <td data-label="พ.ค. 2569" class="num">140</td>
+            <td data-label="มิ.ย. 2569" class="num">145</td>
+            <td data-label="ก.ค. 2569" class="num">150</td>
+            <td data-label="ส.ค. 2569" class="num">150</td>
           </tr>
           <tr>
-            <td>รพ.สต. ตัวอย่าง B</td>
-            <td class="num">55</td>
-            <td class="num">58</td>
-            <td class="num">60</td>
-            <td class="num">60</td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง B</td>
+            <td data-label="พ.ค. 2569" class="num">55</td>
+            <td data-label="มิ.ย. 2569" class="num">58</td>
+            <td data-label="ก.ค. 2569" class="num">60</td>
+            <td data-label="ส.ค. 2569" class="num">60</td>
           </tr>
           <tr>
-            <td>รพ.สต. ตัวอย่าง C</td>
-            <td class="num">90</td>
-            <td class="num">95</td>
-            <td class="num">100</td>
-            <td class="num">100</td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง C</td>
+            <td data-label="พ.ค. 2569" class="num">90</td>
+            <td data-label="มิ.ย. 2569" class="num">95</td>
+            <td data-label="ก.ค. 2569" class="num">100</td>
+            <td data-label="ส.ค. 2569" class="num">100</td>
           </tr>
           <tr>
-            <td>รพ.สต. ตัวอย่าง D (เพิ่งเข้าร่วมเครือข่าย)</td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง D (เพิ่งเข้าร่วมเครือข่าย)</td>
             <td colspan="4"><span class="badge badge-info">ไม่มีข้อมูล</span> — ยังไม่มีประวัติเบิก-จ่ายก่อนเริ่มใช้ระบบ (BL-018 Scenario 2)</td>
           </tr>
         </tbody>
@@ -84,5 +89,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-015 (BL-018)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

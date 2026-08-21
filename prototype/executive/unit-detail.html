@@ -10,6 +10,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>รายละเอียดหน่วย — รพ.สต. ตัวอย่าง A — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
@@ -22,9 +23,13 @@
     <a class="nav-item" href="trend-analysis.html">แนวโน้มการเบิก-จ่าย</a>
     <a class="nav-item" href="report-filter.html">ส่งออกรายงาน</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: เครือข่าย รพ.สต. อำเภอเมือง เชียงราย (ทุกหน่วย)</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: เครือข่าย รพ.สต. อำเภอเมือง เชียงราย (ทุกหน่วย)</span>
+      </div>
       <span>บทบาท: ผู้บริหาร — Read-only (นพ./ภญ. ตัวอย่าง ผู้บริหาร) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -53,22 +58,22 @@
         </thead>
         <tbody>
           <tr class="row-alert">
-            <td>ยา A</td>
-            <td class="num">80</td>
-            <td class="num">120</td>
-            <td><span class="badge badge-danger">ต่ำกว่าเกณฑ์</span></td>
+            <td data-label="รายการยา">ยา A</td>
+            <td data-label="ยอดคงคลังปัจจุบัน" class="num">80</td>
+            <td data-label="เกณฑ์ Safety Stock" class="num">120</td>
+            <td data-label="สถานะ"><span class="badge badge-danger">ต่ำกว่าเกณฑ์</span></td>
           </tr>
           <tr>
-            <td>ยา B</td>
-            <td class="num">210</td>
-            <td class="num">150</td>
-            <td><span class="badge badge-success">ปกติ</span></td>
+            <td data-label="รายการยา">ยา B</td>
+            <td data-label="ยอดคงคลังปัจจุบัน" class="num">210</td>
+            <td data-label="เกณฑ์ Safety Stock" class="num">150</td>
+            <td data-label="สถานะ"><span class="badge badge-success">ปกติ</span></td>
           </tr>
           <tr>
-            <td>ยา C</td>
-            <td class="num">160</td>
-            <td class="num">150</td>
-            <td><span class="badge badge-warning">ใกล้ถึงเกณฑ์</span></td>
+            <td data-label="รายการยา">ยา C</td>
+            <td data-label="ยอดคงคลังปัจจุบัน" class="num">160</td>
+            <td data-label="เกณฑ์ Safety Stock" class="num">150</td>
+            <td data-label="สถานะ"><span class="badge badge-warning">ใกล้ถึงเกณฑ์</span></td>
           </tr>
         </tbody>
       </table>
@@ -84,14 +89,14 @@
         </thead>
         <tbody>
           <tr>
-            <td>REQ-2569-08-A001</td>
-            <td>01/08/2569</td>
-            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td data-label="รหัสคำขอ">REQ-2569-08-A001</td>
+            <td data-label="วันที่ยื่นคำขอ">01/08/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
           </tr>
           <tr>
-            <td>REQ-2569-05-A001</td>
-            <td>02/05/2569</td>
-            <td><span class="badge badge-success">จ่ายแล้ว</span></td>
+            <td data-label="รหัสคำขอ">REQ-2569-05-A001</td>
+            <td data-label="วันที่ยื่นคำขอ">02/05/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-success">จ่ายแล้ว</span></td>
           </tr>
         </tbody>
       </table>
@@ -103,5 +108,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-014 (BL-017)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

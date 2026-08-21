@@ -10,6 +10,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ส่งคำขอปรึกษาแล้ว — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
@@ -24,9 +25,13 @@
     <a class="nav-item" href="emergency-requisition.html">เบิกฉุกเฉิน</a>
     <a class="nav-item" href="notifications.html">การแจ้งเตือน</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: รพ.สต. ตัวอย่าง A</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: รพ.สต. ตัวอย่าง A</span>
+      </div>
       <span>บทบาท: เจ้าหน้าที่ รพ.สต. | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -46,5 +51,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-001 (BL-003)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

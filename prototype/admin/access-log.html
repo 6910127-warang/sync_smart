@@ -10,6 +10,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>System Access Log — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
@@ -24,9 +25,13 @@
     <a class="nav-item" href="audit-log-retention.html">Audit Trail / การเก็บรักษาข้อมูล</a>
     <a class="nav-item" href="system-status.html">การตั้งค่าระบบ</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      </div>
       <span>บทบาท: ผู้ดูแลระบบ (Admin) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -45,39 +50,39 @@
         </thead>
         <tbody>
           <tr>
-            <td>07/06/2569 08:02</td>
-            <td>จนท.รพ.สต. ตัวอย่าง เอ</td>
-            <td><span class="badge badge-success">Login สำเร็จ</span></td>
-            <td>10.0.12.31 (ตัวอย่าง)</td>
-            <td>—</td>
+            <td data-label="วันเวลา">07/06/2569 08:02</td>
+            <td data-label="ผู้ใช้งาน">จนท.รพ.สต. ตัวอย่าง เอ</td>
+            <td data-label="เหตุการณ์"><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td data-label="IP Address">10.0.12.31 (ตัวอย่าง)</td>
+            <td data-label="หมายเหตุ">—</td>
           </tr>
           <tr class="row-alert">
-            <td>07/06/2569 08:05</td>
-            <td>ภก. สมชาย ตัวอย่าง</td>
-            <td><span class="badge badge-danger">Login ไม่สำเร็จ</span></td>
-            <td>10.0.14.52 (ตัวอย่าง)</td>
-            <td>รหัสผ่านไม่ถูกต้อง — บันทึกความพยายามไว้เพื่อความปลอดภัย (BL-028 Scenario 2)</td>
+            <td data-label="วันเวลา">07/06/2569 08:05</td>
+            <td data-label="ผู้ใช้งาน">ภก. สมชาย ตัวอย่าง</td>
+            <td data-label="เหตุการณ์"><span class="badge badge-danger">Login ไม่สำเร็จ</span></td>
+            <td data-label="IP Address">10.0.14.52 (ตัวอย่าง)</td>
+            <td data-label="หมายเหตุ">รหัสผ่านไม่ถูกต้อง — บันทึกความพยายามไว้เพื่อความปลอดภัย (BL-028 Scenario 2)</td>
           </tr>
           <tr>
-            <td>07/06/2569 08:06</td>
-            <td>ภก. สมชาย ตัวอย่าง</td>
-            <td><span class="badge badge-success">Login สำเร็จ</span></td>
-            <td>10.0.14.52 (ตัวอย่าง)</td>
-            <td>—</td>
+            <td data-label="วันเวลา">07/06/2569 08:06</td>
+            <td data-label="ผู้ใช้งาน">ภก. สมชาย ตัวอย่าง</td>
+            <td data-label="เหตุการณ์"><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td data-label="IP Address">10.0.14.52 (ตัวอย่าง)</td>
+            <td data-label="หมายเหตุ">—</td>
           </tr>
           <tr>
-            <td>07/06/2569 16:31</td>
-            <td>ภก. สมชาย ตัวอย่าง</td>
-            <td><span class="badge">Logout</span></td>
-            <td>10.0.14.52 (ตัวอย่าง)</td>
-            <td>บันทึกเวลา logout แยกจากเวลา login ของ session เดียวกัน (BL-028 Scenario 3)</td>
+            <td data-label="วันเวลา">07/06/2569 16:31</td>
+            <td data-label="ผู้ใช้งาน">ภก. สมชาย ตัวอย่าง</td>
+            <td data-label="เหตุการณ์"><span class="badge">Logout</span></td>
+            <td data-label="IP Address">10.0.14.52 (ตัวอย่าง)</td>
+            <td data-label="หมายเหตุ">บันทึกเวลา logout แยกจากเวลา login ของ session เดียวกัน (BL-028 Scenario 3)</td>
           </tr>
           <tr>
-            <td>07/06/2569 09:15</td>
-            <td>admin.it.example</td>
-            <td><span class="badge badge-success">Login สำเร็จ</span></td>
-            <td>10.0.1.10 (ตัวอย่าง)</td>
-            <td>ผู้ใช้ปัจจุบัน</td>
+            <td data-label="วันเวลา">07/06/2569 09:15</td>
+            <td data-label="ผู้ใช้งาน">admin.it.example</td>
+            <td data-label="เหตุการณ์"><span class="badge badge-success">Login สำเร็จ</span></td>
+            <td data-label="IP Address">10.0.1.10 (ตัวอย่าง)</td>
+            <td data-label="หมายเหตุ">ผู้ใช้ปัจจุบัน</td>
           </tr>
         </tbody>
       </table>
@@ -91,5 +96,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-024 (BL-028)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

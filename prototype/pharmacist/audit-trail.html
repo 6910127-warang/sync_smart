@@ -10,6 +10,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Audit Trail — REQ-2569-06-A001 — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
@@ -23,9 +24,13 @@
     <a class="nav-item" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
     <a class="nav-item active" href="audit-trail.html">Audit Trail</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      </div>
       <span>บทบาท: เภสัชกร | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -43,40 +48,40 @@
         </thead>
         <tbody>
           <tr>
-            <td>01/06/2569 09:00</td>
-            <td>จนท. รพ.สต. ตัวอย่าง A</td>
-            <td>ยื่นคำขอเบิก</td>
-            <td>สถานะเริ่มต้น: รอการอนุมัติระดับ 1</td>
+            <td data-label="วันเวลา">01/06/2569 09:00</td>
+            <td data-label="ผู้กระทำ">จนท. รพ.สต. ตัวอย่าง A</td>
+            <td data-label="เหตุการณ์">ยื่นคำขอเบิก</td>
+            <td data-label="รายละเอียด">สถานะเริ่มต้น: รอการอนุมัติระดับ 1</td>
           </tr>
           <tr>
-            <td>02/06/2569 10:15</td>
-            <td>ภก. สมชาย ตัวอย่าง</td>
-            <td>อนุมัติระดับ 1</td>
-            <td>สถานะเปลี่ยนเป็น: รอการอนุมัติระดับ 2</td>
+            <td data-label="วันเวลา">02/06/2569 10:15</td>
+            <td data-label="ผู้กระทำ">ภก. สมชาย ตัวอย่าง</td>
+            <td data-label="เหตุการณ์">อนุมัติระดับ 1</td>
+            <td data-label="รายละเอียด">สถานะเปลี่ยนเป็น: รอการอนุมัติระดับ 2</td>
           </tr>
           <tr>
-            <td>03/06/2569 13:40</td>
-            <td>ภญ. สมหญิง ตัวอย่าง</td>
-            <td>อนุมัติระดับ 2</td>
-            <td>สถานะเปลี่ยนเป็น: อนุมัติแล้ว &rarr; พร้อมส่งออก (อัตโนมัติ)</td>
+            <td data-label="วันเวลา">03/06/2569 13:40</td>
+            <td data-label="ผู้กระทำ">ภญ. สมหญิง ตัวอย่าง</td>
+            <td data-label="เหตุการณ์">อนุมัติระดับ 2</td>
+            <td data-label="รายละเอียด">สถานะเปลี่ยนเป็น: อนุมัติแล้ว &rarr; พร้อมส่งออก (อัตโนมัติ)</td>
           </tr>
           <tr>
-            <td>04/06/2569 14:10</td>
-            <td>ภญ. สมหญิง ตัวอย่าง</td>
-            <td>คอนเฟิร์มส่งออกไฟล์</td>
-            <td>สร้างไฟล์ Excel + ส่งอีเมล/LINE OA ไปฝ่ายคลังยา รพ.แม่ข่าย, สถานะเปลี่ยนเป็น: จ่ายแล้ว</td>
+            <td data-label="วันเวลา">04/06/2569 14:10</td>
+            <td data-label="ผู้กระทำ">ภญ. สมหญิง ตัวอย่าง</td>
+            <td data-label="เหตุการณ์">คอนเฟิร์มส่งออกไฟล์</td>
+            <td data-label="รายละเอียด">สร้างไฟล์ Excel + ส่งอีเมล/LINE OA ไปฝ่ายคลังยา รพ.แม่ข่าย, สถานะเปลี่ยนเป็น: จ่ายแล้ว</td>
           </tr>
           <tr>
-            <td>05/06/2569 08:30</td>
-            <td>จนท. รพ.สต. ตัวอย่าง A</td>
-            <td>ดาวน์โหลดไฟล์ Excel</td>
-            <td>ดาวน์โหลดสำเนาไฟล์คำขอเบิกที่คอนเฟิร์มแล้ว (BL-020b)</td>
+            <td data-label="วันเวลา">05/06/2569 08:30</td>
+            <td data-label="ผู้กระทำ">จนท. รพ.สต. ตัวอย่าง A</td>
+            <td data-label="เหตุการณ์">ดาวน์โหลดไฟล์ Excel</td>
+            <td data-label="รายละเอียด">ดาวน์โหลดสำเนาไฟล์คำขอเบิกที่คอนเฟิร์มแล้ว (BL-020b)</td>
           </tr>
           <tr>
-            <td>06/06/2569 09:05</td>
-            <td>จนท. รพ.สต. ตัวอย่าง A</td>
-            <td>ยืนยันรับยา</td>
-            <td>ยอดคงคลังของหน่วยอัปเดตทันที, สถานะเปลี่ยนเป็น: รับแล้ว</td>
+            <td data-label="วันเวลา">06/06/2569 09:05</td>
+            <td data-label="ผู้กระทำ">จนท. รพ.สต. ตัวอย่าง A</td>
+            <td data-label="เหตุการณ์">ยืนยันรับยา</td>
+            <td data-label="รายละเอียด">ยอดคงคลังของหน่วยอัปเดตทันที, สถานะเปลี่ยนเป็น: รับแล้ว</td>
           </tr>
         </tbody>
       </table>
@@ -88,5 +93,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-005 (BL-008)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

@@ -10,6 +10,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>รออนุมัติระดับ 2 — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
@@ -23,9 +24,13 @@
     <a class="nav-item" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
     <a class="nav-item" href="audit-trail.html">Audit Trail</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      </div>
       <span>บทบาท: เภสัชกร — ผู้ตรวจสอบระดับ 2 (ภญ. สมหญิง ตัวอย่าง) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -45,20 +50,20 @@
         </thead>
         <tbody>
           <tr>
-            <td>REQ-2569-07-A001</td>
-            <td>รพ.สต. ตัวอย่าง A</td>
-            <td>ภก. สมชาย ตัวอย่าง</td>
-            <td>02/07/2569</td>
-            <td><span class="badge badge-info">รอการอนุมัติระดับ 2</span></td>
-            <td><a class="btn-text" href="approval-review-level2.html">ตรวจสอบ</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-07-A001</td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง A</td>
+            <td data-label="ผู้อนุมัติระดับ 1">ภก. สมชาย ตัวอย่าง</td>
+            <td data-label="วันที่อนุมัติระดับ 1">02/07/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 2</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="approval-review-level2.html">ตรวจสอบ</a></td>
           </tr>
           <tr>
-            <td>REQ-2569-07-B001</td>
-            <td>รพ.สต. ตัวอย่าง B</td>
-            <td>ภญ. สมหญิง ตัวอย่าง</td>
-            <td>03/07/2569</td>
-            <td><span class="badge badge-info">รอการอนุมัติระดับ 2</span></td>
-            <td><a class="btn-text" href="approval-review-level2.html">ตรวจสอบ</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-07-B001</td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง B</td>
+            <td data-label="ผู้อนุมัติระดับ 1">ภญ. สมหญิง ตัวอย่าง</td>
+            <td data-label="วันที่อนุมัติระดับ 1">03/07/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 2</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="approval-review-level2.html">ตรวจสอบ</a></td>
           </tr>
         </tbody>
       </table>
@@ -67,5 +72,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-002 (BL-004)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

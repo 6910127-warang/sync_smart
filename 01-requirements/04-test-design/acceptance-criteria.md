@@ -39,7 +39,7 @@
 | BL-023 | FT-019 | 1 | Won't (เฟสนี้) — scenario ยืนยันขอบเขตเท่านั้น |
 | BL-024 | FT-020 | 4 | |
 | BL-025 | FT-021 | 3 | |
-| BL-026 | FT-022 | 3 | |
+| BL-026 | FT-022 | 4 | |
 | BL-027 | FT-023 | 2 | |
 | BL-028 | FT-024 | 3 | |
 | BL-029 | FT-024 | 3 | |
@@ -608,25 +608,30 @@
 - When พยายามทำ
 - Then ระบบต้องปฏิเสธ (สิทธิ์นี้เฉพาะ Admin เท่านั้น)
 
-### BL-026 | ออกแบบ UI แบบ Desktop-first
+### BL-026 | ออกแบบ UI แบบ Responsive เต็มรูปแบบ รองรับทุกอุปกรณ์
 
-- **Feature:** [FT-022](../02-feature-list.md) — ออกแบบ UI แบบ Desktop-first
-- **อ้างอิง:** NFR Usability ([006](../01-spec/20260816-006-rbac-and-security-nfr.md))
+- **Feature:** [FT-022](../02-feature-list.md) — ออกแบบ UI แบบ Responsive เต็มรูปแบบ รองรับทุกอุปกรณ์
+- **อ้างอิง:** NFR Usability ([006](../01-spec/20260816-006-rbac-and-security-nfr.md) หัวข้อ "เพิ่มเติม 20260820" — เปลี่ยนจากมติเดิม Desktop-first); breakpoint/component ตาม [DESIGN.md](../../DESIGN.md) §2.3 (Grid & breakpoint), §3.3 (Data Table), §3.5 (Navigation)
 
-**Scenario 1: ใช้งานผ่านคอมพิวเตอร์/โน้ตบุ๊ก (happy path)**
-- Given เปิดใช้งานผ่านเบราว์เซอร์บนคอมพิวเตอร์/โน้ตบุ๊ก
+**Scenario 1: ใช้งานผ่าน Desktop ความกว้างจอ 1024px ขึ้นไป (happy path)**
+- Given เปิดใช้งานผ่านเบราว์เซอร์บนคอมพิวเตอร์/โน้ตบุ๊กที่ความกว้างจอ 1024px ขึ้นไป
+- When ใช้งานฟังก์ชันหลักของทุก role (สร้างคำขอ, อนุมัติ, ดู Dashboard ฯลฯ)
+- Then UI แสดงผลแบบ grid 12 คอลัมน์ container สูงสุด 1440px พร้อม sidebar เมนูซ้ายคงที่ (DESIGN.md §3.5) และใช้งานได้ครบถ้วน
+
+**Scenario 2: ใช้งานผ่าน Tablet ความกว้างจอ 768-1023px (happy path — responsive)**
+- Given เปิดใช้งานผ่านเบราว์เซอร์บนแท็บเล็ตที่ความกว้างจอ 768-1023px
+- When ใช้งานฟังก์ชันหลักของทุก role
+- Then UI ปรับเป็น grid 8 คอลัมน์ เปลี่ยนจาก sidebar เป็น top bar + ไอคอนเมนู (hamburger) ที่เปิด drawer overlay (DESIGN.md §3.5) และใช้งานได้ครบถ้วนเทียบเท่า desktop โดยไม่มีฟังก์ชัน/ข้อมูลถูกตัดออก
+
+**Scenario 3: ใช้งานผ่านมือถือ ความกว้างจอ 320-767px (happy path — responsive)**
+- Given เปิดใช้งานผ่านเบราว์เซอร์บนมือถือที่ความกว้างจอ 320-767px
+- When ใช้งานฟังก์ชันหลักของทุก role ที่มีตาราง (เช่น ยอดคงคลัง, รายการคำขอเบิก)
+- Then UI ปรับเป็น grid 4 คอลัมน์, เมนูเป็น hamburger + drawer เดียวกับ tablet, ตารางแปลงเป็น card แนวตั้งต่อแถวแทน horizontal scroll (DESIGN.md §3.3) โดยฟิลด์/ข้อมูลครบเท่าตารางเดิม และปุ่ม action หลัก (Primary/Danger) ขยายเต็มความกว้าง (DESIGN.md §3.1)
+
+**Scenario 4: ความกว้างจอที่รอยต่อ breakpoint พอดี (boundary)**
+- Given เปิดใช้งานที่ความกว้างจอพอดีรอยต่อ breakpoint (767px/768px และ 1023px/1024px)
 - When ใช้งานฟังก์ชันหลัก
-- Then UI แสดงผลและใช้งานได้ครบถ้วนโดยไม่ต้องรองรับ responsive เต็มรูปแบบ
-
-**Scenario 2: ความกว้างจอขั้นต่ำ (boundary)**
-- Given เปิดใช้งานบนหน้าจอความกว้างขั้นต่ำที่เผื่อไว้ (container ยืดหดได้ถึง 1024px ตาม DESIGN.md §2.3)
-- When ใช้งานฟังก์ชันหลัก (สร้างคำขอ/อนุมัติ)
-- Then หน้าจอยังคงใช้งานได้ครบถ้วน ไม่มีองค์ประกอบที่ถูกตัดขาดหรือใช้งานไม่ได้
-
-**Scenario 3: ใช้งานผ่านมือถือ/แท็บเล็ต (edge, นอกขอบเขต)**
-- Given ใช้งานผ่านอุปกรณ์มือถือ/แท็บเล็ต
-- When เปิดใช้งาน
-- Then ระบบไม่จำเป็นต้องแสดงผลแบบ responsive เต็มรูปแบบ (ยอมรับข้อจำกัดด้าน UI ได้ตามที่ระบุใน NFR)
+- Then UI สลับ layout ตาม breakpoint ที่ถูกต้องพอดีที่รอยต่อ (mobile ≤767px, tablet 768-1023px, desktop ≥1024px) โดยไม่มีองค์ประกอบตกหล่นหรือซ้อนทับผิดตำแหน่ง
 
 ### BL-027 | มาตรการคุ้มครองข้อมูลตาม PDPA (ระดับพื้นฐาน)
 
@@ -743,3 +748,4 @@
 ## บันทึกการอัปเดต (Changelog)
 
 - **20260816:** สร้าง Acceptance Criteria ครั้งแรก — ขยาย AC แบบย่อของทั้ง 36 backlog item (BL-001 ถึง BL-033 รวม suffix b) เป็น Given-When-Then หลาย scenario ต่อรายการ (รวม 99 scenario) ครอบคลุมทั้ง 5 Epic — scenario ที่ทำเครื่องหมาย `[ถือว่า...]` เป็นข้อสมมติฐานมาตรฐาน QA/UX ที่ยังไม่ยืนยันจาก spec (validation, error handling) ส่วน `[รอยืนยัน]` คงไว้ตรงกับ Open Items ที่ยังไม่ resolved ใน backlog.md/spec (BL-009b, BL-019, BL-022, BL-023, BL-032)
+- **20260820 (test-design-writer, audit stage 3 ของ /check-backlog-sync):** พบ **BL-026** ยังค้างเนื้อหา Desktop-first เดิมทั้งหมด (หัวข้อ, Feature reference, และ 3 scenario ที่ยืนยันว่า "ไม่ต้องรองรับ responsive เต็มรูปแบบ") ทั้งที่ backlog.md/spec 006/feature-list.md แก้เป็น "Responsive เต็มรูปแบบ รองรับทุกอุปกรณ์" พร้อม breakpoint ที่ยืนยันแล้วไปตั้งแต่ 20260820 — เขียน 4 scenario ใหม่ทั้งหมด (Desktop 1024px+, Tablet 768-1023px, Mobile 320-767px, boundary ที่รอยต่อ breakpoint) อ้างอิง DESIGN.md §2.3/§3.3/§3.5 สำหรับรายละเอียด grid/table→card/hamburger-drawer ที่เป็นรูปธรรม — ตรวจสอบส่วนที่เหลือทั้งหมด (99 BL-ID ที่เหลือ, การอ้างอิง FT-ID/FR-US-ID, สถานะ `[รอยืนยัน]`/`[ถือว่า]`) ไม่พบจุดอื่นที่ต้องแก้ไข

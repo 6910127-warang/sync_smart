@@ -1,6 +1,6 @@
 /*
   SmartSync Prototype — Design Tokens
-  แหล่งอ้างอิง: DESIGN.md §2 (Design Tokens / Design System) — วันที่สร้างเอกสารอ้างอิง 20260816
+  แหล่งอ้างอิง: DESIGN.md §2 (Design Tokens / Design System) — วันที่สร้างเอกสารอ้างอิง 20260816, รีเฟรชล่าสุดตาม DESIGN.md วันที่ 20260820 (เพิ่ม Responsive breakpoint/grid — §2.3)
   ห้ามแก้ค่าที่นี่โดยไม่แก้ DESIGN.md ก่อน (DESIGN.md คือ source of truth)
 */
 :root {
@@ -42,9 +42,13 @@
   --radius-sm: 6px; --radius-md: 10px; --radius-full: 999px;
   --shadow-card: 0 1px 3px rgba(46,43,38,0.08);
 
-  /* Layout — Desktop-first, DESIGN.md §2.3 */
+  /* Layout — Responsive เต็มรูปแบบ, DESIGN.md §2.3
+     Breakpoint อ้างอิง (ใช้ตรงๆ เป็นค่า px ใน media query เพราะ CSS custom property ใช้กำหนดเงื่อนไข @media ไม่ได้):
+       Mobile  320–767px  (4 คอลัมน์, เต็มความกว้างจอ, margin --space-4)
+       Tablet  768–1023px (8 คอลัมน์, เต็มความกว้างจอ, margin --space-6)
+       Desktop 1024px+    (12 คอลัมน์, container สูงสุด --container-max, margin --space-12)
+     เขียนสไตล์แบบ mobile-first เสมอ (ฐานคือ mobile ก่อน แล้วขยายด้วย min-width media query) */
   --container-max: 1440px;
-  --container-min: 1024px;
 }
 
 * { box-sizing: border-box; }

@@ -10,6 +10,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>รออนุมัติระดับ 1 — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
@@ -23,9 +24,13 @@
     <a class="nav-item" href="ready-to-export.html">พร้อมส่งออก / คอนเฟิร์ม</a>
     <a class="nav-item" href="audit-trail.html">Audit Trail</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</span>
+      </div>
       <span>บทบาท: เภสัชกร — ผู้อนุมัติระดับ 1 (ภก. สมชาย ตัวอย่าง) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -53,36 +58,36 @@
         </thead>
         <tbody>
           <tr class="row-alert">
-            <td>REQ-2569-05-A002</td>
-            <td>รพ.สต. ตัวอย่าง A</td>
-            <td><span class="badge badge-danger">ฉุกเฉิน</span></td>
-            <td>15/05/2569</td>
-            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
-            <td><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-05-A002</td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง A</td>
+            <td data-label="ประเภท"><span class="badge badge-danger">ฉุกเฉิน</span></td>
+            <td data-label="วันที่ยื่นคำขอ">15/05/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
           </tr>
           <tr>
-            <td>REQ-2569-08-A001</td>
-            <td>รพ.สต. ตัวอย่าง A</td>
-            <td>ปกติ</td>
-            <td>01/08/2569</td>
-            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
-            <td><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-08-A001</td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง A</td>
+            <td data-label="ประเภท">ปกติ</td>
+            <td data-label="วันที่ยื่นคำขอ">01/08/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
           </tr>
           <tr>
-            <td>REQ-2569-08-B001</td>
-            <td>รพ.สต. ตัวอย่าง B</td>
-            <td>ปกติ</td>
-            <td>01/08/2569</td>
-            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
-            <td><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-08-B001</td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง B</td>
+            <td data-label="ประเภท">ปกติ</td>
+            <td data-label="วันที่ยื่นคำขอ">01/08/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
           </tr>
           <tr>
-            <td>REQ-2569-08-C001</td>
-            <td>รพ.สต. ตัวอย่าง C</td>
-            <td>ปกติ</td>
-            <td>02/08/2569</td>
-            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
-            <td><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-08-C001</td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง C</td>
+            <td data-label="ประเภท">ปกติ</td>
+            <td data-label="วันที่ยื่นคำขอ">02/08/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="approval-review-level1.html">พิจารณา</a></td>
           </tr>
         </tbody>
       </table>
@@ -90,5 +95,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-002 (BL-004)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

@@ -10,6 +10,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>รายการคำขอเบิก — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
@@ -24,9 +25,13 @@
     <a class="nav-item" href="emergency-requisition.html">เบิกฉุกเฉิน</a>
     <a class="nav-item" href="notifications.html">การแจ้งเตือน</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: รพ.สต. ตัวอย่าง A</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: รพ.สต. ตัวอย่าง A</span>
+      </div>
       <span>บทบาท: เจ้าหน้าที่ รพ.สต. | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -45,46 +50,46 @@
         </thead>
         <tbody>
           <tr>
-            <td>REQ-2569-08-A001</td>
-            <td>ปกติ</td>
-            <td>01/08/2569</td>
-            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
-            <td><a class="btn-text" href="requisition-submitted.html">ดูรายละเอียด</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-08-A001</td>
+            <td data-label="ประเภท">ปกติ</td>
+            <td data-label="วันที่ยื่นคำขอ">01/08/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="requisition-submitted.html">ดูรายละเอียด</a></td>
           </tr>
           <tr>
-            <td>REQ-2569-07-A001</td>
-            <td>ปกติ</td>
-            <td>02/07/2569</td>
-            <td><span class="badge badge-info">รอการอนุมัติระดับ 2</span></td>
-            <td><a class="btn-text" href="requisition-list.html">ดูรายละเอียด</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-07-A001</td>
+            <td data-label="ประเภท">ปกติ</td>
+            <td data-label="วันที่ยื่นคำขอ">02/07/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 2</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="requisition-list.html">ดูรายละเอียด</a></td>
           </tr>
           <tr>
-            <td>REQ-2569-06-A001</td>
-            <td>ปกติ</td>
-            <td>03/06/2569</td>
-            <td><span class="badge">พร้อมส่งออก</span></td>
-            <td><a class="btn-text" href="requisition-list.html">ดูรายละเอียด</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-06-A001</td>
+            <td data-label="ประเภท">ปกติ</td>
+            <td data-label="วันที่ยื่นคำขอ">03/06/2569</td>
+            <td data-label="สถานะ"><span class="badge">พร้อมส่งออก</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="requisition-list.html">ดูรายละเอียด</a></td>
           </tr>
           <tr>
-            <td>REQ-2569-05-A001</td>
-            <td>ปกติ</td>
-            <td>02/05/2569</td>
-            <td><span class="badge badge-success">จ่ายแล้ว</span></td>
-            <td><a class="btn-text" href="requisition-detail.html">ดูรายละเอียด</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-05-A001</td>
+            <td data-label="ประเภท">ปกติ</td>
+            <td data-label="วันที่ยื่นคำขอ">02/05/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-success">จ่ายแล้ว</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="requisition-detail.html">ดูรายละเอียด</a></td>
           </tr>
           <tr>
-            <td>REQ-2569-04-A001</td>
-            <td>ปกติ</td>
-            <td>01/04/2569</td>
-            <td><span class="badge badge-success">รับแล้ว</span></td>
-            <td><a class="btn-text" href="receive-confirmed.html">ดูรายละเอียด</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-04-A001</td>
+            <td data-label="ประเภท">ปกติ</td>
+            <td data-label="วันที่ยื่นคำขอ">01/04/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-success">รับแล้ว</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="receive-confirmed.html">ดูรายละเอียด</a></td>
           </tr>
           <tr>
-            <td>REQ-2569-05-A002</td>
-            <td><span class="badge badge-danger">ฉุกเฉิน</span></td>
-            <td>15/05/2569</td>
-            <td><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
-            <td><a class="btn-text" href="emergency-requisition-submitted.html">ดูรายละเอียด</a></td>
+            <td data-label="รหัสคำขอ">REQ-2569-05-A002</td>
+            <td data-label="ประเภท"><span class="badge badge-danger">ฉุกเฉิน</span></td>
+            <td data-label="วันที่ยื่นคำขอ">15/05/2569</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="emergency-requisition-submitted.html">ดูรายละเอียด</a></td>
           </tr>
         </tbody>
       </table>
@@ -92,5 +97,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-002 (BL-004, BL-005)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

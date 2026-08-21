@@ -10,14 +10,10 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ภาพรวมเครือข่าย — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
-<style>
-  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); margin-bottom: var(--space-8); }
-  .kpi-card .kpi-label { margin-bottom: var(--space-2); }
-  .kpi-card .kpi-value { color: var(--color-primary-700); }
-</style>
 </head>
 <body>
 <div class="app-shell">
@@ -27,9 +23,13 @@
     <a class="nav-item" href="trend-analysis.html">แนวโน้มการเบิก-จ่าย</a>
     <a class="nav-item" href="report-filter.html">ส่งออกรายงาน</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: เครือข่าย รพ.สต. อำเภอเมือง เชียงราย (ทุกหน่วย)</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: เครือข่าย รพ.สต. อำเภอเมือง เชียงราย (ทุกหน่วย)</span>
+      </div>
       <span>บทบาท: ผู้บริหาร — Read-only (นพ./ภญ. ตัวอย่าง ผู้บริหาร) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -63,28 +63,28 @@
         </thead>
         <tbody>
           <tr class="row-alert">
-            <td>รพ.สต. ตัวอย่าง C</td>
-            <td class="num">2</td>
-            <td><span class="badge badge-danger">มียาขาด</span></td>
-            <td><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง C</td>
+            <td data-label="รายการยาต่ำกว่าเกณฑ์" class="num">2</td>
+            <td data-label="สถานะภาพรวม"><span class="badge badge-danger">มียาขาด</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
           </tr>
           <tr>
-            <td>รพ.สต. ตัวอย่าง A</td>
-            <td class="num">1</td>
-            <td><span class="badge badge-warning">ควรติดตาม</span></td>
-            <td><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง A</td>
+            <td data-label="รายการยาต่ำกว่าเกณฑ์" class="num">1</td>
+            <td data-label="สถานะภาพรวม"><span class="badge badge-warning">ควรติดตาม</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
           </tr>
           <tr>
-            <td>รพ.สต. ตัวอย่าง B</td>
-            <td class="num">0</td>
-            <td><span class="badge badge-success">ปกติ</span></td>
-            <td><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง B</td>
+            <td data-label="รายการยาต่ำกว่าเกณฑ์" class="num">0</td>
+            <td data-label="สถานะภาพรวม"><span class="badge badge-success">ปกติ</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
           </tr>
           <tr>
-            <td>รพ.สต. ตัวอย่าง D (เพิ่งเข้าร่วมเครือข่าย)</td>
-            <td class="num">—</td>
-            <td><span class="badge badge-info">ยังไม่มีข้อมูล</span></td>
-            <td><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
+            <td data-label="หน่วย รพ.สต.">รพ.สต. ตัวอย่าง D (เพิ่งเข้าร่วมเครือข่าย)</td>
+            <td data-label="รายการยาต่ำกว่าเกณฑ์" class="num">—</td>
+            <td data-label="สถานะภาพรวม"><span class="badge badge-info">ยังไม่มีข้อมูล</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="unit-detail.html">ดูรายละเอียด</a></td>
           </tr>
         </tbody>
       </table>
@@ -96,5 +96,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-014 (BL-016)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

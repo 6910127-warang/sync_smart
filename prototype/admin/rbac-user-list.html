@@ -10,6 +10,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>กำหนดสิทธิ์ผู้ใช้ (RBAC) — SmartSync</title>
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
@@ -24,9 +25,13 @@
     <a class="nav-item" href="audit-log-retention.html">Audit Trail / การเก็บรักษาข้อมูล</a>
     <a class="nav-item" href="system-status.html">การตั้งค่าระบบ</a>
   </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
   <div class="main">
     <div class="topbar">
-      <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span>หน่วยงาน: รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย) — ฝ่าย IT</span>
+      </div>
       <span>บทบาท: ผู้ดูแลระบบ (Admin) | <a href="login.html" style="color:inherit;">ออกจากระบบ</a></span>
     </div>
     <div class="content">
@@ -45,32 +50,32 @@
         </thead>
         <tbody>
           <tr>
-            <td>จนท.รพ.สต. ตัวอย่าง เอ</td>
-            <td>รพ.สต. ตัวอย่าง A</td>
-            <td><span class="badge badge-info">เจ้าหน้าที่ รพ.สต. — เห็นเฉพาะหน่วยตนเอง</span></td>
-            <td><span class="badge badge-success">ใช้งานอยู่</span></td>
-            <td><a class="btn-text" href="rbac-user-edit.html">แก้ไขสิทธิ์</a></td>
+            <td data-label="ชื่อผู้ใช้งาน">จนท.รพ.สต. ตัวอย่าง เอ</td>
+            <td data-label="หน่วยงานที่สังกัด">รพ.สต. ตัวอย่าง A</td>
+            <td data-label="บทบาท (Role)"><span class="badge badge-info">เจ้าหน้าที่ รพ.สต. — เห็นเฉพาะหน่วยตนเอง</span></td>
+            <td data-label="สถานะบัญชี"><span class="badge badge-success">ใช้งานอยู่</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="rbac-user-edit.html">แก้ไขสิทธิ์</a></td>
           </tr>
           <tr>
-            <td>ภก. สมชาย ตัวอย่าง</td>
-            <td>รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</td>
-            <td><span class="badge">เภสัชกร — อนุมัติ/คัดกรองทั้งเครือข่าย</span></td>
-            <td><span class="badge badge-success">ใช้งานอยู่</span></td>
-            <td><a class="btn-text" href="rbac-user-edit.html">แก้ไขสิทธิ์</a></td>
+            <td data-label="ชื่อผู้ใช้งาน">ภก. สมชาย ตัวอย่าง</td>
+            <td data-label="หน่วยงานที่สังกัด">รพ.เชียงรายประชานุเคราะห์ (รพ.แม่ข่าย)</td>
+            <td data-label="บทบาท (Role)"><span class="badge">เภสัชกร — อนุมัติ/คัดกรองทั้งเครือข่าย</span></td>
+            <td data-label="สถานะบัญชี"><span class="badge badge-success">ใช้งานอยู่</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="rbac-user-edit.html">แก้ไขสิทธิ์</a></td>
           </tr>
           <tr>
-            <td>นพ./ภญ. ตัวอย่าง ผู้บริหาร</td>
-            <td>รพ.แม่ข่าย / สสอ. เมืองเชียงราย</td>
-            <td><span class="badge badge-warning">ผู้บริหาร — Read-only ทั้งเครือข่าย</span></td>
-            <td><span class="badge badge-success">ใช้งานอยู่</span></td>
-            <td><a class="btn-text" href="rbac-user-edit.html">แก้ไขสิทธิ์</a></td>
+            <td data-label="ชื่อผู้ใช้งาน">นพ./ภญ. ตัวอย่าง ผู้บริหาร</td>
+            <td data-label="หน่วยงานที่สังกัด">รพ.แม่ข่าย / สสอ. เมืองเชียงราย</td>
+            <td data-label="บทบาท (Role)"><span class="badge badge-warning">ผู้บริหาร — Read-only ทั้งเครือข่าย</span></td>
+            <td data-label="สถานะบัญชี"><span class="badge badge-success">ใช้งานอยู่</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="rbac-user-edit.html">แก้ไขสิทธิ์</a></td>
           </tr>
           <tr>
-            <td>admin.it.example (ผู้ใช้ปัจจุบัน)</td>
-            <td>รพ.แม่ข่าย (ฝ่าย IT)</td>
-            <td><span class="badge badge-danger">ผู้ดูแลระบบ — สิทธิ์เต็มด้านระบบ</span></td>
-            <td><span class="badge badge-success">ใช้งานอยู่</span></td>
-            <td><a class="btn-text" href="rbac-user-edit.html">แก้ไขสิทธิ์</a></td>
+            <td data-label="ชื่อผู้ใช้งาน">admin.it.example (ผู้ใช้ปัจจุบัน)</td>
+            <td data-label="หน่วยงานที่สังกัด">รพ.แม่ข่าย (ฝ่าย IT)</td>
+            <td data-label="บทบาท (Role)"><span class="badge badge-danger">ผู้ดูแลระบบ — สิทธิ์เต็มด้านระบบ</span></td>
+            <td data-label="สถานะบัญชี"><span class="badge badge-success">ใช้งานอยู่</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="rbac-user-edit.html">แก้ไขสิทธิ์</a></td>
           </tr>
         </tbody>
       </table>
@@ -86,5 +91,6 @@
   </div>
 </div>
 <div class="proto-badge">Prototype only — FT-020 (BL-024)</div>
+<script src="../assets/nav.js"></script>
 </body>
 </html>

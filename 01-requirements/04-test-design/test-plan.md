@@ -2,7 +2,7 @@
 
 > อ้างอิงจาก [backlog.md](../backlog.md), [Feature List](../02-feature-list.md), [Acceptance Criteria](acceptance-criteria.md), และ [NFR spec 006](../01-spec/20260816-006-rbac-and-security-nfr.md)
 
-**วันที่สร้าง/อัปเดตล่าสุด:** 20260816
+**วันที่สร้าง/อัปเดตล่าสุด:** 20260820
 **สถานะ:** Draft
 
 ## 1. ภาพรวมและวัตถุประสงค์ (Overview & Objectives)
@@ -30,13 +30,13 @@ SmartSync เป็นระบบสนับสนุนการเบิก-
 | Integration Testing | ทดสอบการส่งออกไฟล์ Excel ไปยัง INVC (นำเข้า/ส่งออกไฟล์แบบ Manual batch ไม่ใช่ API real-time) และช่องทางแจ้งเตือนอีเมล/LINE OA — **[ถือว่า]** ต้องมี sandbox/test account ของ SMTP, LINE OA API, และไฟล์ตัวอย่างที่ INVC นำเข้าได้จริงก่อนจึงจะทดสอบ integration ได้ครบ **Epic 4 (FT-017/FT-018) ถูกบล็อกโดย BL-022 `[รอยืนยัน]`** จนกว่าจะได้รูปแบบคอลัมน์ INVC จากฝ่ายดูแลระบบ | FT-012, FT-017, FT-018 |
 | RBAC / Security Testing | ทดสอบว่าแต่ละ Role (เจ้าหน้าที่ รพ.สต., เภสัชกรระดับ 1/2, ผู้บริหาร, Admin) เห็น/แก้ไขได้เฉพาะข้อมูลตามสิทธิ์ที่กำหนด รวมกฎห้ามอนุมัติซ้ำสองระดับด้วยคนเดียวกัน, การปฏิเสธการเข้าถึงข้ามหน่วย, PDPA Consent, System Access Log | FT-002, FT-020, FT-021, FT-023, FT-024 |
 | Performance Testing | ทดสอบว่ายอดคงคลังอัปเดตภายใน **5 วินาที** หลังบันทึกรับ/จ่าย ภายใต้จำนวนผู้ใช้งานพร้อมกันตามขนาดจริงของเครือข่าย (29 รพ.สต. + 1 รพ.แม่ข่าย รวมไม่เกินหลักสิบราย) | FT-004 |
-| Usability Testing | ทดสอบว่า UI ใช้งานได้ครบถ้วนบน Desktop-first (คอมพิวเตอร์/โน้ตบุ๊ก) โดยไม่ต้องรองรับ responsive มือถือ/แท็บเล็ตเต็มรูปแบบ | FT-022 |
+| Usability Testing | ทดสอบว่า UI ใช้งานได้ครบถ้วนแบบ Responsive เต็มรูปแบบบนทั้ง 3 breakpoint — mobile (320-767px), tablet (768-1023px), desktop (1024px ขึ้นไป) ตาม [DESIGN.md](../../DESIGN.md) §2.3 — ครอบคลุมทั้ง 4 role รวมการแปลงตารางเป็น card บนจอเล็ก (§3.3) และเมนู hamburger/drawer บน tablet/mobile (§3.5) | FT-022 |
 | UAT (User Acceptance Testing) | ให้ตัวแทนผู้ใช้จริงแต่ละ Role ทดสอบ flow ของตนเองแบบ end-to-end ตาม User Journey ของ role นั้น — เจ้าหน้าที่ รพ.สต. ([staff-hph-journey.md](../03-user-journey/staff-hph-journey.md)), เภสัชกร ([pharmacist-journey.md](../03-user-journey/pharmacist-journey.md)), ผู้บริหาร ([executive-journey.md](../03-user-journey/executive-journey.md)), ผู้ดูแลระบบ ([admin-journey.md](../03-user-journey/admin-journey.md)) | ทุก Feature ที่เกี่ยวข้องกับ role นั้นๆ |
 | Regression Testing | ทดสอบซ้ำ flow หลักหลังแก้ไข/เพิ่ม feature ใหม่ในแต่ละรอบ Sprint โดยเฉพาะจุดที่มี cross-epic dependency (ดู §5) เพื่อยืนยันว่าการแก้ไข Epic หนึ่งไม่กระทบ Epic ที่ต่อเนื่องกัน | Epic 1→4 (BL-005→BL-020→BL-020b), Epic 2→1 (safety stock→ยอดแนะนำ), Epic 5→ทุก Epic (RBAC) |
 
 ## 4. Environment
 
-- **แพลตฟอร์ม:** Web Application, Desktop-first — ทดสอบผ่านเว็บเบราว์เซอร์บนคอมพิวเตอร์/โน้ตบุ๊กเป็นหลัก ตาม NFR Usability ([006](../01-spec/20260816-006-rbac-and-security-nfr.md)) และ [DESIGN.md](../../DESIGN.md) §2.3 (container ยืดหดได้ถึง 1024px เป็นอย่างน้อย)
+- **แพลตฟอร์ม:** Web Application, Responsive เต็มรูปแบบ — ทดสอบผ่านเว็บเบราว์เซอร์ครอบคลุมอุปกรณ์ทั้ง 3 ประเภทตาม NFR Usability ([006](../01-spec/20260816-006-rbac-and-security-nfr.md) หัวข้อ "เพิ่มเติม 20260820") และ breakpoint ใน [DESIGN.md](../../DESIGN.md) §2.3: mobile (320-767px), tablet (768-1023px), desktop (1024px ขึ้นไป, container สูงสุด 1440px) — ต้องเตรียมอุปกรณ์จริงหรือ browser viewport emulation ครบทั้ง 3 breakpoint ก่อนทดสอบ FT-022
 - **ช่วงเวลาที่ต้องพร้อมใช้งานสำหรับทดสอบ:** สอดคล้องกับ NFR Availability — ระบบต้องพร้อมใช้งานอย่างน้อยในช่วงเวลาราชการ (08:00-16:30 น. จันทร์-ศุกร์) ตาม BL-033
 - **ขนาดผู้ใช้งานพร้อมกัน:** ทดสอบ performance ภายใต้สมมติฐานเครือข่าย 29 รพ.สต. + 1 รพ.แม่ข่าย ผู้ใช้งานพร้อมกันไม่เกินหลักสิบราย (ตาม NFR Performance) — ไม่ต้องออกแบบการทดสอบ load ระดับหลักร้อย/พันผู้ใช้
 - **บัญชีผู้ใช้ทดสอบต่อ Role:** ต้องมีบัญชีทดสอบอย่างน้อย 1 บัญชีต่อ role ต่อไปนี้ (ดู stakeholder table ใน [spec 001](../01-spec/20260816-001-project-scope-and-problem-background.md)):
@@ -90,3 +90,4 @@ SmartSync เป็นระบบสนับสนุนการเบิก-
 ## บันทึกการอัปเดต (Changelog)
 
 - **20260816:** สร้าง Test Plan ครั้งแรก — ครอบคลุมทั้ง 5 Epic (25 Feature) กำหนดกลยุทธ์ทดสอบ 7 ประเภท, environment ตาม NFR ใน spec 006, ความเสี่ยงที่ดึงจาก backlog.md "หมายเหตุ Dependency ข้ามกลุ่ม" และ `[รอยืนยัน]` ที่ยังค้าง, entry/exit criteria แบบมาตรฐาน QA พร้อมทำเครื่องหมาย `[ถือว่า]` กำกับตัวเลข pass-rate และเกณฑ์ defect severity ที่ยังไม่ได้รับการยืนยันจากเจ้าของข้อกำหนด
+- **20260820 (test-design-writer, audit stage 3 ของ /check-backlog-sync):** พบ 2 จุดยังอ้างอิง "Desktop-first" เดิม ทั้งที่ BL-026/FT-022 แก้เป็น "Responsive เต็มรูปแบบ" ไปแล้วตั้งแต่ 20260820 — แก้ §3 แถว Usability Testing (ระบุ breakpoint 3 ระดับที่ต้องทดสอบแทนการยืนยันว่าไม่ต้องรองรับ responsive) และ §4 Environment แถวแพลตฟอร์ม (ต้องเตรียมอุปกรณ์/viewport emulation ครบ 3 breakpoint แทน desktop อย่างเดียว) — ตรวจสอบส่วนที่เหลือทั้งหมด (scope, risk management, entry/exit criteria) เทียบกับ backlog.md/feature-list.md ปัจจุบัน ไม่พบจุดอื่นที่ต้องแก้ไข
