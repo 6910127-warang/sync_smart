@@ -2,7 +2,7 @@
 
 > อ้างอิงจาก [Feature List](../../02-feature-list.md), [Acceptance Criteria](../acceptance-criteria.md), [pharmacist-journey.md](../../03-user-journey/pharmacist-journey.md), และ [staff-hph-journey.md](../../03-user-journey/staff-hph-journey.md)
 >
-> หมายเหตุ: ข้อมูลทดสอบเป็น placeholder ทั่วไป ไม่ใช่ข้อมูลยา NCD จริง — ดู [test-plan.md](../test-plan.md) §4 — ทดสอบเฉพาะส่วน RBAC/state transition/ช่องทางส่งไฟล์ได้ก่อน ส่วนความถูกต้องของโครงสร้างคอลัมน์ไฟล์ (FT-018) ยังบล็อกอยู่
+> หมายเหตุ: ข้อมูลทดสอบเป็น placeholder ทั่วไป ไม่ใช่ข้อมูลยา NCD จริง — ดู [test-plan.md](../test-plan.md) §4 — ทดสอบได้ครบทุกส่วนแล้ว รวมถึงความถูกต้องของโครงสร้างคอลัมน์ไฟล์ (FT-018/BL-022 ยืนยันแล้ว 20260823 ดู [invc-file-format-compatibility.md](invc-file-format-compatibility.md) TC-072/TC-101/TC-102) ยกเว้นตรรกะแยกไฟล์ 2 ชุด (BL-034, TC-103/TC-104) ที่ยังต้องใช้ข้อมูลจำลองจนกว่า field/flag "บัญชีแพทย์" จะเป็นฟิลด์ทางการใน 06-data-model.md
 
 | Test ID | Test Case Name | Pre-condition | Test Steps | Expected Result | Test Data | อ้างอิง |
 |---|---|---|---|---|---|---|
@@ -19,3 +19,4 @@
 ## บันทึกการอัปเดต (Changelog)
 
 - **20260816:** สร้าง Test Case ของ FT-017 ครั้งแรก — 7 test case (TC-065–TC-071) ครอบคลุมทั้ง 7 scenario ของ BL-020/BL-020b/BL-021 ใน acceptance-criteria.md — เนื้อหาไฟล์ Excel ต้องรอ FT-018 ปลดบล็อกจึงทดสอบความถูกต้องของโครงสร้างคอลัมน์ได้ครบ
+- **20260823 (test-design-writer, audit stage 3 ของ /check-backlog-sync):** อัปเดตหมายเหตุหัวไฟล์ — FT-018 (BL-022) ปลดล็อกแล้วตั้งแต่ 20260823 ทดสอบได้ครบรวมถึงโครงสร้างคอลัมน์ไฟล์ (ดู invc-file-format-compatibility.md) ไม่มีการแก้ไข test case ของไฟล์นี้เอง (TC-065–TC-071 ไม่เปลี่ยนแปลง)
