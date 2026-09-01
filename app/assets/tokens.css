@@ -1,0 +1,69 @@
+/*
+  SmartSync Prototype — Design Tokens
+  แหล่งอ้างอิง: DESIGN.md §2 (Design Tokens / Design System) — วันที่สร้างเอกสารอ้างอิง 20260816, รีเฟรชล่าสุดตาม DESIGN.md วันที่ 20260820 (เพิ่ม Responsive breakpoint/grid — §2.3)
+  ห้ามแก้ค่าที่นี่โดยไม่แก้ DESIGN.md ก่อน (DESIGN.md คือ source of truth)
+*/
+:root {
+  /* Neutral / Base — DESIGN.md §2.1 */
+  --color-bg-paper: #F7F5F1;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-muted: #EFEAE2;
+  --color-border: #DCD5C9;
+  --color-text-primary: #2E2B26;
+  --color-text-secondary: #6B6459;
+  --color-text-disabled: #A9A297;
+
+  /* Primary */
+  --color-primary-700: #2F5D53;
+  --color-primary-600: #3D7568;
+  --color-primary-100: #DCEAE5;
+
+  /* Semantic — use sparingly, badges/icons/action-buttons only (DESIGN.md §2.1) */
+  --color-success: #4C7A5E;
+  --color-warning: #B8863E;
+  --color-danger: #B14B3F;
+  --color-info: #4A6FA5;
+
+  /* Typography — DESIGN.md §2.2 */
+  --font-family-thai: "IBM Plex Sans Thai", "Noto Sans Thai", sans-serif;
+  --font-family-latin: "IBM Plex Sans", sans-serif;
+  --font-size-display: 32px; --line-height-display: 40px;
+  --font-size-h1: 24px;      --line-height-h1: 32px;
+  --font-size-h2: 20px;      --line-height-h2: 28px;
+  --font-size-body: 16px;    --line-height-body: 24px;
+  --font-size-small: 14px;   --line-height-small: 20px;
+  --font-size-caption: 12px; --line-height-caption: 16px;
+
+  /* Spacing — 4px grid, DESIGN.md §2.3 */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
+
+  /* Radius & elevation */
+  --radius-sm: 6px; --radius-md: 10px; --radius-full: 999px;
+  --shadow-card: 0 1px 3px rgba(46,43,38,0.08);
+
+  /* Layout — Responsive เต็มรูปแบบ, DESIGN.md §2.3
+     Breakpoint อ้างอิง (ใช้ตรงๆ เป็นค่า px ใน media query เพราะ CSS custom property ใช้กำหนดเงื่อนไข @media ไม่ได้):
+       Mobile  320–767px  (4 คอลัมน์, เต็มความกว้างจอ, margin --space-4)
+       Tablet  768–1023px (8 คอลัมน์, เต็มความกว้างจอ, margin --space-6)
+       Desktop 1024px+    (12 คอลัมน์, container สูงสุด --container-max, margin --space-12)
+     เขียนสไตล์แบบ mobile-first เสมอ (ฐานคือ mobile ก่อน แล้วขยายด้วย min-width media query) */
+  --container-max: 1440px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-family-thai);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  color: var(--color-text-primary);
+  background: var(--color-bg-paper);
+}
+
+h1, h2 { font-family: var(--font-family-thai); font-weight: 500; margin: 0 0 var(--space-4); }
+h1 { font-size: var(--font-size-h1); line-height: var(--line-height-h1); }
+h2 { font-size: var(--font-size-h2); line-height: var(--line-height-h2); }
+.text-secondary { color: var(--color-text-secondary); font-size: var(--font-size-small); }
+.text-display { font-size: var(--font-size-display); line-height: var(--line-height-display); font-weight: 500; }

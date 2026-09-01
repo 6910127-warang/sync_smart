@@ -1,0 +1,136 @@
+<!--
+  เครื่องมือช่วย seed ข้อมูลตัวอย่างลง Firestore สำหรับทดสอบหน้า staff-hph/requisition-list.html
+  ข้อมูลที่สร้างเป็น placeholder ล้วน (ไม่ใช่ข้อมูลยา NCD จริง/หน่วยงานจริง) ตามกฎ CLAUDE.md
+  ใช้ครั้งเดียวตอนทดสอบ ลบไฟล์นี้ทิ้งได้เมื่อไม่ต้องการแล้ว (ไม่ใช่ส่วนหนึ่งของหน้าจอจริง)
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Seed ข้อมูลตัวอย่าง — SmartSync (dev only)</title>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/components.css">
+</head>
+<body>
+<div class="content" style="max-width:640px;margin:0 auto;">
+  <h1>Seed ข้อมูลตัวอย่างลง Firestore</h1>
+  <p class="text-secondary">สร้างหน่วยงาน 2 แห่ง + รายการยาตัวอย่าง + เกณฑ์ safety stock ของเดือนปัจจุบัน + คำขอเบิกตัวอย่างหลายสถานะ เพื่อทดสอบ <code>staff-hph/requisition-list.html</code> และ <code>staff-hph/requisition-new.html</code> เท่านั้น ไม่ใช่ข้อมูลจริง</p>
+  <button class="btn btn-primary" id="seed-btn" style="width:auto;">Seed ข้อมูลตัวอย่าง</button>
+  <pre id="log" style="white-space:pre-wrap;background:var(--color-bg-muted);padding:var(--space-4);border-radius:var(--radius-md);margin-top:var(--space-4);"></pre>
+</div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, doc, setDoc, deleteDoc, collection, addDoc, query, where, getDocs, Timestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { firebaseConfig } from "./firebase-config.js";
+  import { generateRequisitionCode } from "./lib/requisition-code.js";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const logEl = document.getElementById("log");
+  function log(msg) { logEl.textContent += msg + "\n"; }
+
+  const UNITS = [
+    { id: "hph-sample-a", name: "รพ.สต. ตัวอย่าง A", type: "hph", code: "HPH01" },
+    { id: "hph-sample-b", name: "รพ.สต. ตัวอย่าง B", type: "hph", code: "HPH02" }
+  ];
+  const UNIT_IDS = UNITS.map((u) => u.id);
+
+  const DRUG_ITEMS = [
+    { id: "drug-sample-a", name: "ยา A", workingCode: "1000001", hospitalCode: "DRGA01" },
+    { id: "drug-sample-b", name: "ยา B", workingCode: "1000002", hospitalCode: "DRGB01" },
+    { id: "drug-sample-c", name: "ยา C", workingCode: "1000003", hospitalCode: "DRGC01" },
+    { id: "drug-sample-d", name: "ยา D", workingCode: "1000004", hospitalCode: null }
+  ];
+  // เกณฑ์ safety stock ตัวอย่างของเดือนปัจจุบัน ต่อหน่วย — ใช้ทดสอบหน้า requisition-new.html (ยอดแนะนำเบิก = เกณฑ์ - ยอดคงเหลือที่กรอก)
+  const THRESHOLDS = {
+    "hph-sample-a": { "drug-sample-a": 150, "drug-sample-b": 60, "drug-sample-c": 90 },
+    "hph-sample-b": { "drug-sample-a": 100, "drug-sample-b": 40 }
+  };
+
+  async function deleteWhereUnitIdIn(collectionName, unitIds) {
+    const q = query(collection(db, collectionName), where("unitId", "in", unitIds));
+    const snap = await getDocs(q);
+    await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+    return snap.size;
+  }
+
+  document.getElementById("seed-btn").addEventListener("click", async () => {
+    logEl.textContent = "";
+    try {
+      const removedReq = await deleteWhereUnitIdIn("requisitions", UNIT_IDS);
+      const removedCounters = await deleteWhereUnitIdIn("counters", UNIT_IDS);
+      log(`ล้างข้อมูลตัวอย่างเดิม: ลบคำขอเบิก ${removedReq} รายการ, ตัวนับรหัส ${removedCounters} รายการ`);
+
+      for (const u of UNITS) {
+        await setDoc(doc(db, "units", u.id), { name: u.name, type: u.type, code: u.code, active: true });
+      }
+      log(`สร้าง/อัปเดตหน่วยงานตัวอย่าง ${UNITS.length} แห่งแล้ว: ${UNITS.map((u) => `${u.id} (${u.code})`).join(", ")}`);
+
+      for (const d of DRUG_ITEMS) {
+        await setDoc(doc(db, "drugItems", d.id), {
+          name: d.name, active: true, workingCode: d.workingCode,
+          hospitalCode: d.hospitalCode, physicianAccountCategory: false, sourceWarehouse: "production"
+        });
+      }
+      log(`สร้าง/อัปเดตรายการยาตัวอย่าง ${DRUG_ITEMS.length} รายการแล้ว: ${DRUG_ITEMS.map((d) => d.id).join(", ")}`);
+
+      const now = new Date();
+      const yearMonthBE = `${now.getFullYear() + 543}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      let thresholdCount = 0;
+      for (const [unitId, drugMap] of Object.entries(THRESHOLDS)) {
+        for (const [drugItemId, thresholdValue] of Object.entries(drugMap)) {
+          const thresholdId = `${unitId}_${drugItemId}_${yearMonthBE}`;
+          await setDoc(doc(db, "safetyStockThresholds", thresholdId), {
+            unitId, drugItemId, referenceMonth: yearMonthBE, thresholdValue,
+            calculationSource: "คำนวณเริ่มต้น (Year-over-year)"
+          });
+          thresholdCount++;
+        }
+      }
+      log(`สร้าง/อัปเดตเกณฑ์ safety stock ของเดือน ${yearMonthBE} แล้ว ${thresholdCount} รายการ (ยา D ไม่มีเกณฑ์ตั้งใจ เพื่อทดสอบกรณี "ยังไม่ตั้งเกณฑ์")`);
+
+      const samples = [
+        { unitId: "hph-sample-a", type: "normal", status: "pending_level1", daysAgo: 0, confirmed: true },
+        { unitId: "hph-sample-a", type: "normal", status: "pending_level2", daysAgo: 30, confirmed: true },
+        { unitId: "hph-sample-a", type: "normal", status: "ready_to_export", daysAgo: 60, confirmed: true },
+        { unitId: "hph-sample-a", type: "normal", status: "dispensed", daysAgo: 90, confirmed: true },
+        { unitId: "hph-sample-a", type: "emergency", status: "pending_level1", daysAgo: 5, confirmed: true },
+        { unitId: "hph-sample-b", type: "normal", status: "pending_level1", daysAgo: 1, confirmed: false }
+      ];
+
+      for (const s of samples) {
+        const unit = UNITS.find((u) => u.id === s.unitId);
+        const createdDate = new Date(Date.now() - s.daysAgo * 86400000);
+        const createdAt = Timestamp.fromDate(createdDate);
+        // รอบเดือนที่เบิก (period) ใช้เฉพาะคำขอปกติ — คำขอฉุกเฉินใช้วันที่สร้างคำขอแทนตาม data-model.md §3.4
+        const period = s.type === "normal"
+          ? `${createdDate.getFullYear() + 543}-${String(createdDate.getMonth() + 1).padStart(2, "0")}`
+          : null;
+        const requisitionCode = await generateRequisitionCode(db, {
+          unitId: s.unitId, unitCode: unit.code, codeDate: createdDate
+        });
+        const ref = await addDoc(collection(db, "requisitions"), {
+          unitId: s.unitId,
+          createdBy: "seed-script",
+          type: s.type,
+          period,
+          status: s.status,
+          requisitionCode,
+          createdAt,
+          confirmedByStaffAt: s.confirmed ? createdAt : null,
+          dispensedAt: s.status === "dispensed" ? createdAt : null,
+          recordVersion: 1
+        });
+        log(`สร้างคำขอเบิก ${requisitionCode} (doc id: ${ref.id}, ${s.unitId}, ${s.status})`);
+      }
+      log("\nเสร็จแล้ว — เปิด staff-hph/requisition-list.html แล้วเลือกหน่วยงานเพื่อดูผล");
+    } catch (err) {
+      log("เกิดข้อผิดพลาด: " + err.message);
+      console.error(err);
+    }
+  });
+</script>
+</body>
+</html>

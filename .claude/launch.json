@@ -6,6 +6,12 @@
       "runtimeExecutable": "py",
       "runtimeArgs": ["-m", "http.server", "4173", "--directory", "prototype"],
       "port": 4173
+    },
+    {
+      "name": "app",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "http.server", "4174", "--directory", "app"],
+      "port": 4174
     }
   ]
 }

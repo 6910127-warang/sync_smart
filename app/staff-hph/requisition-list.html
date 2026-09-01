@@ -1,0 +1,211 @@
+<!--
+  Role: เจ้าหน้าที่ รพ.สต. (staff-hph)
+  หน้า: รายการคำขอเบิกของหน่วยฉัน — เวอร์ชันเชื่อมข้อมูลจริงบน Firebase (Cloud Firestore)
+  อ้างอิง: FT-002, BL-004, BL-005 — โครงสร้างข้อมูล/field อ้างอิง 01-requirements/06-data-model.md หัวข้อ 3.4 (Requisition)
+  หมายเหตุ (เพิ่ม 20260901): "หน่วยของฉัน" เลือกจาก dropdown ชั่วคราว เนื่องจากระบบ login/RBAC จริง (BL-024) ยังไม่ถูกสร้าง
+  — เมื่อ BL-024 พัฒนาเสร็จ ให้แทนที่ dropdown นี้ด้วยหน่วยที่ผูกกับผู้ใช้ที่ login จริง (ดู README.md หัวข้อ "ขั้นต่อไป")
+  ดูโครงสร้าง collection/field ทั้งหมดที่ ../README.md
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>รายการคำขอเบิก — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<style>
+  .unit-picker { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-6); flex-wrap: wrap; }
+  .unit-picker select { height: 40px; padding: 0 var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-family: var(--font-family-thai); font-size: var(--font-size-body); background: var(--color-bg-surface); }
+  .state-row td { text-align: center !important; color: var(--color-text-secondary); padding: var(--space-6) !important; display: table-cell !important; }
+  .btn-text[disabled] { color: var(--color-text-disabled); cursor: default; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item" href="requisition-new.html">สร้างคำขอเบิกยา</a>
+    <a class="nav-item active" href="requisition-list.html">รายการคำขอเบิก</a>
+  </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span id="topbar-unit-name">หน่วยงาน: —</span>
+      </div>
+      <span>บทบาท: เจ้าหน้าที่ รพ.สต. (ข้อมูลจริงจาก Firestore)</span>
+    </div>
+    <div class="content">
+      <h1>รายการคำขอเบิกของหน่วยฉัน</h1>
+      <p class="text-secondary">ติดตามสถานะคำขอเบิกทั้งหมดของหน่วยที่เลือก ตามลำดับ: รอการอนุมัติระดับ 1 → รอการอนุมัติระดับ 2 → อนุมัติแล้ว → พร้อมส่งออก → จ่ายแล้ว → รับแล้ว</p>
+
+      <div class="unit-picker">
+        <label for="unit-select" class="text-secondary">หน่วยงาน (ชั่วคราว จนกว่าจะมีระบบ login จริง — BL-024):</label>
+        <select id="unit-select"><option value="">กำลังโหลดรายชื่อหน่วยงาน…</option></select>
+        <button class="btn btn-secondary" id="refresh-btn" type="button" style="width:auto;">รีเฟรช</button>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>รหัสคำขอ</th>
+            <th>ประเภท</th>
+            <th>วันที่ยื่นคำขอ</th>
+            <th>สถานะ</th>
+            <th>การดำเนินการ</th>
+          </tr>
+        </thead>
+        <tbody id="requisition-rows">
+          <tr class="state-row"><td colspan="5">เลือกหน่วยงานเพื่อดูรายการคำขอเบิก</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="../assets/nav.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, query, where, orderBy, limit, getDocs
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { firebaseConfig } from "../firebase-config.js";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const unitSelect = document.getElementById("unit-select");
+  const topbarUnitName = document.getElementById("topbar-unit-name");
+  const rowsBody = document.getElementById("requisition-rows");
+  const refreshBtn = document.getElementById("refresh-btn");
+
+  // ค่า enum ต้องตรงกับที่ตกลงไว้ใน README.md (mapping จาก 06-data-model.md หัวข้อ 5)
+  const STATUS_LABEL = {
+    pending_level1: { text: "รอการอนุมัติระดับ 1", badge: "badge-info" },
+    pending_level2: { text: "รอการอนุมัติระดับ 2", badge: "badge-info" },
+    approved: { text: "อนุมัติแล้ว", badge: "" },
+    ready_to_export: { text: "พร้อมส่งออก", badge: "" },
+    dispensed: { text: "จ่ายแล้ว", badge: "badge-success" },
+    rejected: { text: "ปฏิเสธ", badge: "badge-danger" }
+  };
+  const RECEIVED_LABEL = { text: "รับแล้ว", badge: "badge-success" };
+  const TYPE_LABEL = {
+    normal: { text: "ปกติ", badge: "" },
+    emergency: { text: "ฉุกเฉิน", badge: "badge-danger" }
+  };
+
+  function formatThaiDate(timestamp) {
+    if (!timestamp) return "—";
+    const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear() + 543;
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
+  function badgeSpan(label) {
+    const cls = label.badge ? `badge ${label.badge}` : "";
+    return cls ? `<span class="${cls}">${label.text}</span>` : label.text;
+  }
+
+  // ป้องกันหน้าจอค้างเฉยๆ ถ้าเชื่อมต่อ Firestore ไม่ได้ (เช่น ยังไม่ได้ใส่ config จริงใน firebase-config.js)
+  function withTimeout(promise, ms, timeoutMessage) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error(timeoutMessage)), ms))
+    ]);
+  }
+
+  async function loadUnits() {
+    unitSelect.innerHTML = `<option value="">กำลังโหลดรายชื่อหน่วยงาน…</option>`;
+    try {
+      const q = query(collection(db, "units"), where("active", "==", true), orderBy("name"));
+      const snap = await withTimeout(getDocs(q), 10000, "เชื่อมต่อ Firestore ไม่ได้ภายใน 10 วินาที — ตรวจสอบค่าใน firebase-config.js");
+      if (snap.empty) {
+        unitSelect.innerHTML = `<option value="">ไม่พบหน่วยงาน — ดูวิธี seed ข้อมูลตัวอย่างที่ ../seed.html</option>`;
+        return;
+      }
+      unitSelect.innerHTML = `<option value="">— เลือกหน่วยงาน —</option>`;
+      snap.forEach((doc) => {
+        const unit = doc.data();
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = unit.name;
+        unitSelect.appendChild(opt);
+      });
+    } catch (err) {
+      unitSelect.innerHTML = `<option value="">โหลดรายชื่อหน่วยงานไม่สำเร็จ: ${err.message}</option>`;
+      console.error("loadUnits failed:", err);
+    }
+  }
+
+  async function hasReceipt(requisitionId) {
+    const q = query(
+      collection(db, "goodsReceiptRecords"),
+      where("requisitionId", "==", requisitionId),
+      limit(1)
+    );
+    const snap = await getDocs(q);
+    return !snap.empty;
+  }
+
+  function renderState(message) {
+    rowsBody.innerHTML = `<tr class="state-row"><td colspan="5">${message}</td></tr>`;
+  }
+
+  async function loadRequisitions(unitId, unitName) {
+    topbarUnitName.textContent = `หน่วยงาน: ${unitName}`;
+    renderState("กำลังโหลดข้อมูล…");
+    try {
+      const q = query(
+        collection(db, "requisitions"),
+        where("unitId", "==", unitId),
+        orderBy("createdAt", "desc"),
+        limit(50)
+      );
+      const snap = await withTimeout(getDocs(q), 10000, "เชื่อมต่อ Firestore ไม่ได้ภายใน 10 วินาที");
+      if (snap.empty) {
+        renderState("หน่วยนี้ยังไม่มีคำขอเบิก");
+        return;
+      }
+
+      const rows = await Promise.all(snap.docs.map(async (doc) => {
+        const req = doc.data();
+        const typeLabel = TYPE_LABEL[req.type] || { text: req.type, badge: "" };
+        let statusLabel = STATUS_LABEL[req.status] || { text: req.status, badge: "" };
+        if (req.status === "dispensed" && await hasReceipt(doc.id)) {
+          statusLabel = RECEIVED_LABEL;
+        }
+        // วันที่ยื่นคำขอ = confirmedByStaffAt (วันที่เจ้าหน้าที่กดยืนยันคำขอ ตาม FR-1.1a) — ใช้ createdAt แทนถ้ายังไม่ยืนยัน
+        const submittedAt = req.confirmedByStaffAt || req.createdAt;
+        return `
+          <tr>
+            <td data-label="รหัสคำขอ">${req.requisitionCode || doc.id}</td>
+            <td data-label="ประเภท">${badgeSpan(typeLabel)}</td>
+            <td data-label="วันที่ยื่นคำขอ">${formatThaiDate(submittedAt)}</td>
+            <td data-label="สถานะ">${badgeSpan(statusLabel)}</td>
+            <td data-label="การดำเนินการ"><span class="btn-text" disabled title="หน้ารายละเอียดยังไม่เชื่อมข้อมูลจริง">ดูรายละเอียด</span></td>
+          </tr>`;
+      }));
+      rowsBody.innerHTML = rows.join("");
+    } catch (err) {
+      renderState(`โหลดข้อมูลไม่สำเร็จ: ${err.message} (ดู console — อาจต้องสร้าง Firestore index ตาม error ที่แจ้ง)`);
+      console.error("loadRequisitions failed:", err);
+    }
+  }
+
+  unitSelect.addEventListener("change", () => {
+    const unitId = unitSelect.value;
+    if (!unitId) { renderState("เลือกหน่วยงานเพื่อดูรายการคำขอเบิก"); return; }
+    loadRequisitions(unitId, unitSelect.options[unitSelect.selectedIndex].textContent);
+  });
+  refreshBtn.addEventListener("click", () => {
+    if (unitSelect.value) loadRequisitions(unitSelect.value, unitSelect.options[unitSelect.selectedIndex].textContent);
+    else loadUnits();
+  });
+
+  loadUnits();
+</script>
+</body>
+</html>
