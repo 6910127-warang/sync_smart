@@ -1,0 +1,404 @@
+<!--
+  Role: เภสัชกร (pharmacist) — ผู้อนุมัติระดับ 1
+  หน้า: พิจารณาคำขอเบิก (อนุมัติ/ปฏิเสธ ระดับ 1) — เวอร์ชันเชื่อมข้อมูลจริงบน Firebase (Cloud Firestore)
+  อ้างอิง: FT-002, BL-004, BL-036 (Optimistic Concurrency / FR-6.5)
+  หมายเหตุ (อัปเดต 20260907, BL-024):
+  - รับ requisition id ผ่าน query param ?id= จากหน้า approval-queue-level1.html
+  - "ตัวตนเภสัชกร" มาจาก Firebase Authentication (email/password) จริงแล้ว เหมือนหน้าคิว — ดู lib/auth.js
+  หมายเหตุ (อัปเดต 20260908): ฟอร์ม login ย้ายไปรวมที่ ../login.html จุดเดียว (ไม่ได้ฝังในหน้านี้แล้ว) —
+  หน้านี้ทำหน้าที่แค่ guard ผ่าน watchAuth เท่านั้น ถ้ายังไม่ login/role ไม่ตรง จะ redirect ไป ../login.html เสมอ
+  - ตัดฟีเจอร์ BL-032 (แจ้งเตือนยอดไม่ตรงกันอัตโนมัติ) และ BL-015 (กรอกจำนวนคาดการณ์เคสใหม่) ออกจากรอบนี้
+    เพราะต้องพึ่ง collection inventoryBalances/manualForecastAdjustments ที่ยังไม่ถูกสร้าง (รอ Epic 2)
+    แทนที่ด้วยช่องกรอก pharmacistConfirmedBalance แบบสมัครใจ/manual เฉยๆ ไม่มี auto-warning
+  - การอนุมัติ/ปฏิเสธใช้ Firestore transaction เช็ค recordVersion/status ล่าสุดก่อนบันทึกเสมอ (BL-036/FR-6.5)
+  ดูโครงสร้าง collection/field ทั้งหมดที่ ../README.md
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>พิจารณาคำขอ — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<style>
+  .state-row td { text-align: center !important; color: var(--color-text-secondary); padding: var(--space-6) !important; display: table-cell !important; }
+  .topbar-right { display: flex; align-items: center; gap: var(--space-3); }
+  #loading-view { max-width: 480px; margin: var(--space-8) auto; }
+  #loading-view.hidden, #notice-view.hidden, #review-view.hidden { display: none; }
+  #notice-view { display: none; }
+  .data-table td.num input.numeric { width: 110px; }
+  .back-link { display: inline-block; margin-bottom: var(--space-4); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item active" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+  </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span id="topbar-name">เภสัชกร: —</span>
+      </div>
+      <div class="topbar-right">
+        <span>บทบาท: เภสัชกร — ผู้อนุมัติระดับ 1 (ข้อมูลจริงจาก Firestore)</span>
+        <button class="btn-text" id="sign-out-btn" type="button" style="display:none;">ออกจากระบบ</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <div id="loading-view" class="card">
+        <p class="text-secondary">กำลังตรวจสอบสิทธิ์การใช้งาน…</p>
+      </div>
+
+      <div id="notice-view" class="card">
+        <p id="notice-message"></p>
+        <p style="margin-top: var(--space-4);"><a class="btn btn-secondary" href="approval-queue-level1.html" style="width:auto;">กลับไปรายการรออนุมัติระดับ 1</a></p>
+      </div>
+
+      <div id="review-view" class="hidden">
+        <a class="back-link btn-text" href="approval-queue-level1.html">← กลับไปรายการรออนุมัติระดับ 1</a>
+        <h1 id="page-title">พิจารณาคำขอ</h1>
+        <p class="text-secondary" id="page-subtitle"></p>
+
+        <div id="stale-error-banner" class="alert-banner alert-danger" style="display:none;"></div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>รายการยา</th>
+              <th class="num">ยอดแนะนำเบิก</th>
+              <th class="num">ยอดคงเหลือที่ จนท. แจ้ง</th>
+              <th class="num">ยอดคงเหลือที่เภสัชกรยืนยัน/แก้ไข (ถ้าพบว่าไม่ตรง)</th>
+              <th class="num">จำนวนที่อนุมัติ</th>
+            </tr>
+          </thead>
+          <tbody id="line-item-rows">
+            <tr class="state-row"><td colspan="5">กำลังโหลดข้อมูล…</td></tr>
+          </tbody>
+        </table>
+
+        <p style="margin-top: var(--space-8); display:flex; gap: var(--space-3); flex-wrap: wrap;">
+          <button class="btn btn-primary" id="approve-btn" type="button" style="width:auto;" disabled>อนุมัติระดับ 1</button>
+          <button class="btn btn-danger" id="reject-btn" type="button" style="width:auto;">ปฏิเสธคำขอ</button>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="approve-modal" style="display:none;">
+  <div class="modal">
+    <h2>ยืนยันอนุมัติระดับ 1?</h2>
+    <p id="approve-modal-text"></p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="approve-cancel-btn" type="button">ยกเลิก</button>
+      <button class="btn btn-primary" id="approve-confirm-btn" type="button">ยืนยันอนุมัติ</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="reject-modal" style="display:none;">
+  <div class="modal">
+    <h2>ปฏิเสธคำขอ?</h2>
+    <div class="form-field">
+      <label for="reject-reason">เหตุผลการปฏิเสธ (จำเป็นต้องกรอก)</label>
+      <input type="text" id="reject-reason" placeholder="เช่น ยอดคงเหลือที่แจ้งไม่ตรงกับที่ตรวจนับจริง">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="reject-cancel-btn" type="button">ยกเลิก</button>
+      <button class="btn btn-danger" id="reject-confirm-btn" type="button" disabled>ยืนยันปฏิเสธคำขอ</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/nav.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, collection, query, where, getDocs, runTransaction
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { firebaseConfig } from "../firebase-config.js";
+  import { getAuthForApp, signOutUser, watchAuth } from "../lib/auth.js";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuthForApp(app);
+
+  const STATUS_LABEL = {
+    pending_level1: "รอการอนุมัติระดับ 1",
+    pending_level2: "รอการอนุมัติระดับ 2",
+    approved: "อนุมัติแล้ว",
+    ready_to_export: "พร้อมส่งออก",
+    dispensed: "จ่ายแล้ว",
+    rejected: "ปฏิเสธ"
+  };
+
+  const loadingView = document.getElementById("loading-view");
+  const noticeView = document.getElementById("notice-view");
+  const noticeMessage = document.getElementById("notice-message");
+  const reviewView = document.getElementById("review-view");
+  const signOutBtn = document.getElementById("sign-out-btn");
+  const topbarName = document.getElementById("topbar-name");
+  const pageTitle = document.getElementById("page-title");
+  const pageSubtitle = document.getElementById("page-subtitle");
+  const rowsBody = document.getElementById("line-item-rows");
+  const approveBtn = document.getElementById("approve-btn");
+  const rejectBtn = document.getElementById("reject-btn");
+  const staleBanner = document.getElementById("stale-error-banner");
+
+  const requisitionId = new URLSearchParams(location.search).get("id");
+
+  let pharmacistSession = null;
+  let expectedVersion = null;   // recordVersion ที่อ่านได้ล่าสุด — ใช้เช็คตอนบันทึกจริง (BL-036/FR-6.5)
+  let lineItemIds = [];         // drugItemId -> lineItemId (Firestore doc id ของ lineItems)
+
+  function withTimeout(promise, ms, timeoutMessage) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error(timeoutMessage)), ms))
+    ]);
+  }
+
+  function applySessionChrome(profile) {
+    signOutBtn.style.display = "";
+    topbarName.textContent = `เภสัชกร: ${profile.displayName}`;
+  }
+
+  // ฟอร์ม login รวมอยู่ที่ ../login.html จุดเดียวแล้ว — หน้านี้แค่ redirect กลับไปเมื่อไม่ผ่านเงื่อนไข
+  // (ไม่ login / role ไม่ตรง) ใช้ replace กันไม่ให้ปุ่ม back วนกลับมาหน้าที่โหลดไม่สำเร็จ
+  function redirectToLogin() {
+    location.replace("../login.html");
+  }
+
+  function showNoticeView(message) {
+    loadingView.classList.add("hidden");
+    reviewView.classList.add("hidden");
+    noticeMessage.textContent = message;
+    noticeView.style.display = "block";
+  }
+
+  function showReviewView() {
+    loadingView.classList.add("hidden");
+    noticeView.style.display = "none";
+    reviewView.classList.remove("hidden");
+  }
+
+  function checkApproveValid() {
+    const inputs = rowsBody.querySelectorAll(".approved-qty-input");
+    if (inputs.length === 0) { approveBtn.disabled = true; return; }
+    let allValid = true;
+    inputs.forEach((input) => {
+      const val = parseInt(input.value, 10);
+      const errorEl = input.closest("td").querySelector(".field-error");
+      const invalid = input.value.trim() === "" || !Number.isFinite(val) || val < 0;
+      if (errorEl) errorEl.style.display = invalid ? "block" : "none";
+      if (invalid) allValid = false;
+    });
+    // ยอดคงเหลือที่เภสัชกรยืนยัน (ถ้ากรอก) ต้องเป็นจำนวนเต็มไม่ติดลบเช่นกัน — ปล่อยว่างได้ (แปลว่าไม่พบความไม่ตรงกัน)
+    rowsBody.querySelectorAll(".confirmed-balance-input").forEach((input) => {
+      const raw = input.value.trim();
+      const errorEl = input.closest("td").querySelector(".field-error");
+      let invalid = false;
+      if (raw !== "") {
+        const val = parseInt(raw, 10);
+        invalid = !Number.isFinite(val) || val < 0;
+      }
+      if (errorEl) errorEl.style.display = invalid ? "block" : "none";
+      if (invalid) allValid = false;
+    });
+    approveBtn.disabled = !allValid;
+  }
+
+  async function loadRequisition() {
+    if (!requisitionId) {
+      showNoticeView("ไม่พบคำขอที่ต้องการ — กรุณาเลือกจากรายการ");
+      return;
+    }
+    try {
+      const reqRef = doc(db, "requisitions", requisitionId);
+      const reqSnap = await withTimeout(getDoc(reqRef), 10000, "เชื่อมต่อ Firestore ไม่ได้ภายใน 10 วินาที");
+      if (!reqSnap.exists()) {
+        showNoticeView("ไม่พบคำขอนี้ (อาจถูกลบไปแล้ว)");
+        return;
+      }
+      const req = reqSnap.data();
+      if (req.status !== "pending_level1") {
+        showNoticeView(`คำขอนี้ถูกดำเนินการไปแล้ว — สถานะปัจจุบัน: ${STATUS_LABEL[req.status] || req.status}`);
+        return;
+      }
+      expectedVersion = req.recordVersion;
+
+      const [unitSnap, lineSnap, drugSnap] = await Promise.all([
+        getDoc(doc(db, "units", req.unitId)),
+        getDocs(collection(reqRef, "lineItems")),
+        getDocs(query(collection(db, "drugItems"), where("active", "==", true)))
+      ]);
+      const unitName = unitSnap.exists() ? unitSnap.data().name : req.unitId;
+      const drugNameMap = new Map(drugSnap.docs.map((d) => [d.id, d.data().name]));
+
+      pageTitle.textContent = `พิจารณาคำขอ ${req.requisitionCode || requisitionId}`;
+      pageSubtitle.textContent = `หน่วย ${unitName} — สถานะ: ${STATUS_LABEL[req.status] || req.status}`;
+
+      if (lineSnap.empty) {
+        rowsBody.innerHTML = `<tr class="state-row"><td colspan="5">คำขอนี้ยังไม่มีรายการยา</td></tr>`;
+        approveBtn.disabled = true;
+      } else {
+        lineItemIds = lineSnap.docs.map((d) => d.id);
+        rowsBody.innerHTML = lineSnap.docs.map((d) => {
+          const line = d.data();
+          const drugName = drugNameMap.get(line.drugItemId) || line.drugItemId;
+          return `
+            <tr data-line-item-id="${d.id}">
+              <td data-label="รายการยา">${drugName}</td>
+              <td data-label="ยอดแนะนำเบิก" class="num">${line.suggestedQuantity}</td>
+              <td data-label="ยอดคงเหลือที่ จนท. แจ้ง" class="num">${line.selfReportedBalance}</td>
+              <td data-label="ยอดคงเหลือที่เภสัชกรยืนยัน/แก้ไข" class="num">
+                <input type="text" inputmode="numeric" class="numeric confirmed-balance-input" placeholder="ไม่ระบุ = ตรงกันดี">
+                <div class="field-error" style="display:none;">กรอกเป็นจำนวนเต็มไม่ติดลบ หรือเว้นว่างไว้</div>
+              </td>
+              <td data-label="จำนวนที่อนุมัติ" class="num">
+                <input type="text" inputmode="numeric" class="numeric approved-qty-input" value="${line.suggestedQuantity}">
+                <div class="field-error" style="display:none;">กรอกยอดที่อนุมัติเป็นจำนวนเต็มไม่ติดลบ</div>
+              </td>
+            </tr>`;
+        }).join("");
+        rowsBody.querySelectorAll(".approved-qty-input, .confirmed-balance-input").forEach((input) => {
+          input.addEventListener("input", checkApproveValid);
+        });
+        checkApproveValid();
+      }
+
+      showReviewView();
+    } catch (err) {
+      showNoticeView(`โหลดข้อมูลไม่สำเร็จ: ${err.message} (ดู console)`);
+      console.error("loadRequisition failed:", err);
+    }
+  }
+
+  async function approveRequisition({ requisitionId, expectedVersion, lineItemUpdates, approverUid }) {
+    const reqRef = doc(db, "requisitions", requisitionId);
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(reqRef); // ต้องอ่านก่อนเขียนเสมอตามกฎ transaction ของ Firestore
+      if (!snap.exists()) throw new Error("ไม่พบคำขอนี้ — อาจถูกลบไปแล้ว");
+      const data = snap.data();
+      if (data.status !== "pending_level1" || data.recordVersion !== expectedVersion) {
+        throw new Error("STALE_VERSION");
+      }
+      tx.update(reqRef, { status: "pending_level2", recordVersion: expectedVersion + 1 });
+      lineItemUpdates.forEach(({ lineItemId, approvedQuantity, pharmacistConfirmedBalance }) => {
+        const lineRef = doc(db, "requisitions", requisitionId, "lineItems", lineItemId);
+        const patch = { approvedQuantity };
+        if (pharmacistConfirmedBalance !== null) patch.pharmacistConfirmedBalance = pharmacistConfirmedBalance;
+        tx.update(lineRef, patch);
+      });
+      tx.set(doc(collection(reqRef, "approvalRecords")), {
+        level: 1, approverId: approverUid, decision: "approved", reason: null, decidedAt: new Date()
+      });
+    });
+  }
+
+  async function rejectRequisition({ requisitionId, expectedVersion, reason, approverUid }) {
+    const reqRef = doc(db, "requisitions", requisitionId);
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(reqRef);
+      if (!snap.exists()) throw new Error("ไม่พบคำขอนี้ — อาจถูกลบไปแล้ว");
+      const data = snap.data();
+      if (data.status !== "pending_level1" || data.recordVersion !== expectedVersion) {
+        throw new Error("STALE_VERSION");
+      }
+      tx.update(reqRef, { status: "rejected", recordVersion: expectedVersion + 1 });
+      tx.set(doc(collection(reqRef, "approvalRecords")), {
+        level: 1, approverId: approverUid, decision: "rejected", reason, decidedAt: new Date()
+      });
+    });
+  }
+
+  function showStaleError() {
+    staleBanner.textContent = "มีคนอื่นแก้ไขคำขอนี้ไปแล้ว กรุณาโหลดหน้าใหม่แล้วลองอีกครั้ง";
+    staleBanner.style.display = "block";
+  }
+
+  approveBtn.addEventListener("click", () => {
+    const rowCount = rowsBody.querySelectorAll("tr[data-line-item-id]").length;
+    document.getElementById("approve-modal-text").textContent =
+      `ท่านกำลังจะอนุมัติระดับ 1 จำนวน ${rowCount} รายการยา สถานะจะเปลี่ยนเป็น "รอการอนุมัติระดับ 2" (รอเภสัชกรอีกคนยืนยันซ้ำ)`;
+    document.getElementById("approve-modal").style.display = "flex";
+  });
+  document.getElementById("approve-cancel-btn").addEventListener("click", () => {
+    document.getElementById("approve-modal").style.display = "none";
+  });
+  document.getElementById("approve-confirm-btn").addEventListener("click", async () => {
+    const confirmBtn = document.getElementById("approve-confirm-btn");
+    confirmBtn.disabled = true;
+    try {
+      const lineItemUpdates = Array.from(rowsBody.querySelectorAll("tr[data-line-item-id]")).map((row) => {
+        const lineItemId = row.dataset.lineItemId;
+        const approvedQuantity = parseInt(row.querySelector(".approved-qty-input").value, 10);
+        const confirmedRaw = row.querySelector(".confirmed-balance-input").value.trim();
+        const pharmacistConfirmedBalance = confirmedRaw === "" ? null : parseInt(confirmedRaw, 10);
+        return { lineItemId, approvedQuantity, pharmacistConfirmedBalance };
+      });
+      await approveRequisition({ requisitionId, expectedVersion, lineItemUpdates, approverUid: pharmacistSession.uid });
+      document.getElementById("approve-modal").style.display = "none";
+      showNoticeView('อนุมัติระดับ 1 สำเร็จ — สถานะเปลี่ยนเป็น "รอการอนุมัติระดับ 2" แล้ว');
+    } catch (err) {
+      document.getElementById("approve-modal").style.display = "none";
+      if (err.message === "STALE_VERSION") showStaleError();
+      else { alert("อนุมัติไม่สำเร็จ: " + err.message); console.error("approveRequisition failed:", err); }
+    } finally {
+      confirmBtn.disabled = false;
+    }
+  });
+
+  rejectBtn.addEventListener("click", () => {
+    document.getElementById("reject-reason").value = "";
+    document.getElementById("reject-confirm-btn").disabled = true;
+    document.getElementById("reject-modal").style.display = "flex";
+  });
+  document.getElementById("reject-cancel-btn").addEventListener("click", () => {
+    document.getElementById("reject-modal").style.display = "none";
+  });
+  document.getElementById("reject-reason").addEventListener("input", (e) => {
+    document.getElementById("reject-confirm-btn").disabled = e.target.value.trim() === "";
+  });
+  document.getElementById("reject-confirm-btn").addEventListener("click", async () => {
+    const reason = document.getElementById("reject-reason").value.trim();
+    if (!reason) return;
+    const confirmBtn = document.getElementById("reject-confirm-btn");
+    confirmBtn.disabled = true;
+    try {
+      await rejectRequisition({ requisitionId, expectedVersion, reason, approverUid: pharmacistSession.uid });
+      document.getElementById("reject-modal").style.display = "none";
+      showNoticeView("ปฏิเสธคำขอสำเร็จ — บันทึกเหตุผลและสถานะเป็น \"ปฏิเสธ\" แล้ว");
+    } catch (err) {
+      document.getElementById("reject-modal").style.display = "none";
+      if (err.message === "STALE_VERSION") showStaleError();
+      else { alert("ปฏิเสธคำขอไม่สำเร็จ: " + err.message); console.error("rejectRequisition failed:", err); }
+    } finally {
+      confirmBtn.disabled = false;
+    }
+  });
+
+  signOutBtn.addEventListener("click", () => {
+    if (!confirm("ออกจากระบบ?")) return;
+    signOutUser(auth);
+  });
+
+  watchAuth(auth, db, "pharmacist", {
+    onSignedIn: async (profile) => {
+      pharmacistSession = profile;
+      applySessionChrome(profile);
+      await loadRequisition();
+    },
+    onSignedOut: redirectToLogin,
+    onWrongRole: redirectToLogin
+  });
+</script>
+</body>
+</html>

@@ -2,9 +2,13 @@
   Role: เจ้าหน้าที่ รพ.สต. (staff-hph)
   หน้า: สร้างคำขอเบิกยาประจำเดือน — เวอร์ชันเชื่อมข้อมูลจริงบน Firebase (Cloud Firestore)
   อ้างอิง: FT-001, BL-001, BL-002 — โครงสร้างข้อมูล/field อ้างอิง 01-requirements/06-data-model.md หัวข้อ 3.4 (Requisition), 3.5 (RequisitionLineItem), 3.8 (SafetyStockThreshold)
-  หมายเหตุ (เพิ่ม 20260901):
-  - "หน่วยของฉัน" เลือกจาก dropdown ชั่วคราวเหมือน requisition-list.html (รอ Firebase Auth จริง — BL-024)
-  - "ผู้สร้างคำขอ (createdBy)" ยังเป็น placeholder string เพราะยังไม่มี Firebase Auth จริง — ต้องแทนที่ค่านี้เมื่อต่อระบบ login จริง
+  หมายเหตุ (อัปเดต 20260907, BL-024): เข้าสู่ระบบด้วย Firebase Authentication (email/password) จริงแล้ว
+  "หน่วยของฉัน" อ่านจาก users/{uid}.unitId ตามบัญชีที่ login (เจ้าหน้าที่ รพ.สต. สังกัด 1 หน่วยเท่านั้น — ยืนยันจากผู้ใช้)
+  ไม่มีการเลือกหน่วยเองอีกต่อไป — ดู lib/auth.js และ README.md หัวข้อ "ความปลอดภัย" (ยังไม่ได้ตั้ง Firestore Security Rules ตาม role/unitId)
+  "ผู้สร้างคำขอ (createdBy)" ใช้ uid จริงจาก Firebase Auth แล้วเช่นกัน
+  หมายเหตุ (อัปเดต 20260908): ฟอร์ม login ย้ายไปรวมที่ ../login.html จุดเดียว (ไม่ได้ฝังในหน้านี้แล้ว) —
+  หน้านี้ทำหน้าที่แค่ guard ผ่าน watchAuth เท่านั้น ถ้ายังไม่ login/role ไม่ตรง/ไม่มี unitId จะ redirect ไป ../login.html เสมอ
+  หมายเหตุอื่น (เพิ่ม 20260901):
   - ยังไม่ทำ: FT-008/BL-032 (กระทบยอดคงเหลือที่แจ้งเองกับยอดคงคลัง) — ตาม FR-1.9b เกิดขึ้นตอนอนุมัติระดับ 1 ไม่ใช่ตอนสร้างคำขอ จึงอยู่นอกขอบเขตหน้านี้
   - ยังไม่ทำ: BL-003 ("ขอปรึกษา" ผ่าน LINE OA) — ต้องรอ BL-014 (ช่องทางแจ้งเตือนจริง) ปุ่มนี้จึงปิดใช้งานไว้ก่อน
   - ยังไม่ทำ: คำขอเบิกฉุกเฉิน (FT-อื่น, นอกรอบเดือน) — แยกหน้าต่างหาก
@@ -19,12 +23,12 @@
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
 <style>
-  .unit-picker { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-6); flex-wrap: wrap; }
-  .unit-picker select { height: 40px; padding: 0 var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-family: var(--font-family-thai); font-size: var(--font-size-body); background: var(--color-bg-surface); }
   .state-row td { text-align: center !important; color: var(--color-text-secondary); padding: var(--space-6) !important; display: table-cell !important; }
   .btn-secondary[disabled] { color: var(--color-text-disabled); border-color: var(--color-border); cursor: default; pointer-events: none; }
+  .topbar-right { display: flex; align-items: center; gap: var(--space-3); }
+  #loading-view { max-width: 480px; margin: var(--space-8) auto; }
+  #loading-view.hidden, #form-view.hidden, #success-view.hidden { display: none; }
   #success-view { display: none; }
-  #form-view.hidden, #success-view.hidden { display: none; }
 </style>
 </head>
 <body>
@@ -41,18 +45,20 @@
         <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
         <span id="topbar-unit-name">หน่วยงาน: —</span>
       </div>
-      <span>บทบาท: เจ้าหน้าที่ รพ.สต. (ข้อมูลจริงจาก Firestore)</span>
+      <div class="topbar-right">
+        <span>บทบาท: เจ้าหน้าที่ รพ.สต. (ข้อมูลจริงจาก Firestore)</span>
+        <button class="btn-text" id="sign-out-btn" type="button" style="display:none;">ออกจากระบบ</button>
+      </div>
     </div>
     <div class="content">
 
-      <div id="form-view">
+      <div id="loading-view" class="card">
+        <p class="text-secondary">กำลังตรวจสอบสิทธิ์การใช้งาน…</p>
+      </div>
+
+      <div id="form-view" class="hidden">
         <h1 id="page-title">สร้างคำขอเบิกยาประจำเดือน</h1>
         <p class="text-secondary">ยอดแนะนำเบิกคำนวณอัตโนมัติจากเกณฑ์ Safety Stock ของหน่วยที่เลือก — กรุณากรอกยอดคงเหลือปัจจุบันของแต่ละรายการยาก่อนยืนยันคำขอ</p>
-
-        <div class="unit-picker">
-          <label for="unit-select" class="text-secondary">หน่วยงาน (ชั่วคราว จนกว่าจะมีระบบ login จริง — BL-024):</label>
-          <select id="unit-select"><option value="">กำลังโหลดรายชื่อหน่วยงาน…</option></select>
-        </div>
 
         <table class="data-table">
           <thead>
@@ -63,7 +69,7 @@
             </tr>
           </thead>
           <tbody id="line-item-rows">
-            <tr class="state-row"><td colspan="3">เลือกหน่วยงานเพื่อเริ่มสร้างคำขอเบิก</td></tr>
+            <tr class="state-row"><td colspan="3">กำลังโหลดข้อมูล…</td></tr>
           </tbody>
         </table>
 
@@ -104,17 +110,20 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getFirestore, collection, doc, query, where, orderBy, getDocs, writeBatch
+    getFirestore, doc, getDoc, collection, query, where, orderBy, getDocs, writeBatch
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { firebaseConfig } from "../firebase-config.js";
   import { generateRequisitionCode } from "../lib/requisition-code.js";
+  import { getAuthForApp, signOutUser, watchAuth } from "../lib/auth.js";
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const auth = getAuthForApp(app);
 
   const THAI_MONTHS = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
 
-  const unitSelect = document.getElementById("unit-select");
+  const loadingView = document.getElementById("loading-view");
+  const signOutBtn = document.getElementById("sign-out-btn");
   const topbarUnitName = document.getElementById("topbar-unit-name");
   const pageTitle = document.getElementById("page-title");
   const rowsBody = document.getElementById("line-item-rows");
@@ -130,7 +139,8 @@
   const period = `${yearBE}-${monthPadded}`;
   pageTitle.textContent = `สร้างคำขอเบิกยาประจำเดือน — ${THAI_MONTHS[now.getMonth()]} ${yearBE}`;
 
-  let selectedUnit = null; // { id, name, code }
+  let selectedUnit = null; // { id, name, code } — มาจาก users/{uid}.unitId ของบัญชีที่ login
+  let currentUid = null;   // uid ของ Firebase Auth ที่ login อยู่ — ใช้เป็น createdBy ตอนบันทึกคำขอ
   let drugItems = [];      // [{ id, name }]
   let thresholdMap = {};   // drugItemId -> number | undefined (undefined = ยังไม่ตั้งเกณฑ์)
 
@@ -146,28 +156,31 @@
     submitBtn.disabled = true;
   }
 
-  async function loadUnits() {
-    unitSelect.innerHTML = `<option value="">กำลังโหลดรายชื่อหน่วยงาน…</option>`;
+  // ฟอร์ม login รวมอยู่ที่ ../login.html จุดเดียวแล้ว — หน้านี้แค่ redirect กลับไปเมื่อไม่ผ่านเงื่อนไข
+  // (ไม่ login / role ไม่ตรง / ไม่มี unitId) ใช้ replace กันไม่ให้ปุ่ม back วนกลับมาหน้าที่โหลดไม่สำเร็จ
+  function redirectToLogin() {
+    location.replace("../login.html");
+  }
+
+  async function showFormView(profile) {
+    currentUid = profile.uid;
+    let unitName = profile.unitId;
+    let unitCode = "";
     try {
-      const q = query(collection(db, "units"), where("active", "==", true), orderBy("name"));
-      const snap = await withTimeout(getDocs(q), 10000, "เชื่อมต่อ Firestore ไม่ได้ภายใน 10 วินาที — ตรวจสอบค่าใน firebase-config.js");
-      if (snap.empty) {
-        unitSelect.innerHTML = `<option value="">ไม่พบหน่วยงาน — ดูวิธี seed ข้อมูลตัวอย่างที่ ../seed.html</option>`;
-        return;
+      const unitDoc = await getDoc(doc(db, "units", profile.unitId));
+      if (unitDoc.exists()) {
+        unitName = unitDoc.data().name;
+        unitCode = unitDoc.data().code || "";
       }
-      unitSelect.innerHTML = `<option value="">— เลือกหน่วยงาน —</option>`;
-      snap.forEach((d) => {
-        const unit = d.data();
-        const opt = document.createElement("option");
-        opt.value = d.id;
-        opt.textContent = unit.name;
-        opt.dataset.code = unit.code || "";
-        unitSelect.appendChild(opt);
-      });
     } catch (err) {
-      unitSelect.innerHTML = `<option value="">โหลดรายชื่อหน่วยงานไม่สำเร็จ: ${err.message}</option>`;
-      console.error("loadUnits failed:", err);
+      console.error("load unit name failed:", err);
     }
+    selectedUnit = { id: profile.unitId, name: unitName, code: unitCode };
+    loadingView.classList.add("hidden");
+    signOutBtn.style.display = "";
+    formView.classList.remove("hidden");
+    topbarUnitName.textContent = `หน่วยงาน: ${selectedUnit.name}`;
+    loadDrugItemsAndThresholds(selectedUnit);
   }
 
   function recomputeSuggested(row) {
@@ -248,18 +261,9 @@
     }
   }
 
-  unitSelect.addEventListener("change", () => {
-    const unitId = unitSelect.value;
-    if (!unitId) {
-      selectedUnit = null;
-      topbarUnitName.textContent = "หน่วยงาน: —";
-      renderState("เลือกหน่วยงานเพื่อเริ่มสร้างคำขอเบิก");
-      return;
-    }
-    const opt = unitSelect.options[unitSelect.selectedIndex];
-    selectedUnit = { id: unitId, name: opt.textContent, code: opt.dataset.code };
-    topbarUnitName.textContent = `หน่วยงาน: ${selectedUnit.name}`;
-    loadDrugItemsAndThresholds(selectedUnit);
+  signOutBtn.addEventListener("click", () => {
+    if (!confirm("ออกจากระบบ?")) return;
+    signOutUser(auth);
   });
 
   submitBtn.addEventListener("click", () => {
@@ -294,8 +298,7 @@
       const reqRef = doc(collection(db, "requisitions"));
       batch.set(reqRef, {
         unitId: selectedUnit.id,
-        // placeholder จนกว่าจะต่อ Firebase Auth จริง (BL-024) — ไม่ใช่ UserAccount reference จริง
-        createdBy: "unauthenticated-staff-placeholder",
+        createdBy: currentUid,
         type: "normal",
         period,
         status: "pending_level1",
@@ -330,7 +333,14 @@
     }
   });
 
-  loadUnits();
+  watchAuth(auth, db, "staff_hph", {
+    onSignedIn: (profile) => {
+      if (!profile.unitId) { redirectToLogin(); return; }
+      showFormView(profile);
+    },
+    onSignedOut: redirectToLogin,
+    onWrongRole: redirectToLogin
+  });
 </script>
 </body>
 </html>

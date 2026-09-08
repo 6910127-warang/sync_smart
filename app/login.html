@@ -1,0 +1,125 @@
+<!--
+  หน้า Login กลาง (เพิ่ม 20260908) — จุดเข้าใช้งานเดียวสำหรับทั้งสอง role (staff_hph, pharmacist)
+  ล็อกอินด้วย Firebase Authentication (email/password) แล้ว redirect ไปหน้าแรกของ role นั้นอัตโนมัติ
+  ตาม role ที่อ่านจาก users/{uid} — แทนที่การมีฟอร์ม login ฝังซ้ำกันอยู่ในแต่ละหน้าจอ (เดิมมี 4 จุด)
+  หน้าจอปลายทางแต่ละอันยังคง watchAuth ของตัวเองไว้เพื่อ guard การเข้าตรงๆ/refresh —
+  ถ้าไม่ผ่านเงื่อนไข (ยังไม่ login, role ไม่ตรง, ไม่มี unitId) จะถูก redirect กลับมาที่นี่เสมอ
+  ดู lib/auth.js และ README.md หัวข้อ "Firebase Authentication"
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เข้าสู่ระบบ — SmartSync</title>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/components.css">
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  #login-card { width: 100%; max-width: 480px; }
+  #login-card .btn-primary { margin-top: var(--space-4); }
+</style>
+</head>
+<body>
+<div id="login-card" class="card">
+  <h1>SmartSync — เข้าสู่ระบบ</h1>
+  <p class="text-secondary" id="message">เข้าสู่ระบบด้วยอีเมลและรหัสผ่านของท่าน</p>
+  <div id="form-area">
+    <div class="form-field">
+      <label for="email-input">อีเมล</label>
+      <input type="email" id="email-input" autocomplete="username">
+    </div>
+    <div class="form-field">
+      <label for="password-input">รหัสผ่าน</label>
+      <input type="password" id="password-input" autocomplete="current-password">
+    </div>
+    <p class="field-error" id="error-message" style="display:none;"></p>
+    <button class="btn btn-primary" id="sign-in-btn" type="button" style="width:auto;">เข้าสู่ระบบ</button>
+  </div>
+  <button class="btn btn-secondary" id="sign-out-btn" type="button" style="width:auto; display:none; margin-top: var(--space-4);">ออกจากระบบ</button>
+</div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { firebaseConfig } from "./firebase-config.js";
+  import { getAuthForApp, signIn, signOutUser, fetchUserProfile, authErrorMessage } from "./lib/auth.js";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuthForApp(app);
+
+  // หน้าแรกของแต่ละ role หลัง login สำเร็จ — เพิ่ม role ใหม่ที่นี่เมื่อมีหน้าจอจริงรองรับแล้ว
+  const ROLE_HOME = {
+    staff_hph: "staff-hph/requisition-list.html",
+    pharmacist: "pharmacist/approval-queue-level1.html"
+  };
+  const ROLE_LABEL_TH = { staff_hph: "เจ้าหน้าที่ รพ.สต.", pharmacist: "เภสัชกร" };
+
+  const messageEl = document.getElementById("message");
+  const formArea = document.getElementById("form-area");
+  const emailInput = document.getElementById("email-input");
+  const passwordInput = document.getElementById("password-input");
+  const errorMessage = document.getElementById("error-message");
+  const signInBtn = document.getElementById("sign-in-btn");
+  const signOutBtn = document.getElementById("sign-out-btn");
+
+  function showForm(message) {
+    formArea.style.display = "";
+    signOutBtn.style.display = "none";
+    messageEl.textContent = message || "เข้าสู่ระบบด้วยอีเมลและรหัสผ่านของท่าน";
+  }
+
+  // ใช้ตอนบัญชี login สำเร็จแล้วแต่ยังไปหน้าไหนไม่ได้ (role ไม่รู้จัก/ยังไม่ผูกหน่วยงาน ฯลฯ)
+  // ไม่ sign out ให้อัตโนมัติ (เหตุผลเดียวกับใน lib/auth.js) — โชว์ปุ่ม "ออกจากระบบ" ให้กดเองแทน
+  function showBlocked(message) {
+    formArea.style.display = "none";
+    signOutBtn.style.display = "";
+    messageEl.textContent = message;
+  }
+
+  signInBtn.addEventListener("click", async () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    errorMessage.style.display = "none";
+    signInBtn.disabled = true;
+    try {
+      await signIn(auth, email, password);
+      // onAuthStateChanged ด้านล่างจะรับช่วงตัดสินใจ redirect ต่อเอง
+    } catch (err) {
+      errorMessage.textContent = authErrorMessage(err);
+      errorMessage.style.display = "block";
+      console.error("signIn failed:", err);
+    } finally {
+      signInBtn.disabled = false;
+    }
+  });
+
+  signOutBtn.addEventListener("click", () => signOutUser(auth));
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { showForm(); return; }
+    try {
+      const profile = await fetchUserProfile(db, user.uid);
+      if (!profile) {
+        showBlocked("บัญชีนี้ไม่พร้อมใช้งานแล้ว — กรุณาติดต่อผู้ดูแลระบบ หรือกด \"ออกจากระบบ\" แล้วลองบัญชีอื่น");
+        return;
+      }
+      if (profile.role === "staff_hph" && !profile.unitId) {
+        showBlocked("บัญชีนี้ไม่มีหน่วยงานผูกไว้ — กรุณาติดต่อผู้ดูแลระบบ หรือกด \"ออกจากระบบ\" แล้วลองบัญชีอื่น");
+        return;
+      }
+      const home = ROLE_HOME[profile.role];
+      if (!home) {
+        showBlocked(`บทบาท "${ROLE_LABEL_TH[profile.role] || profile.role}" ยังไม่มีหน้าจอใช้งาน — กด "ออกจากระบบ" แล้วลองบัญชีอื่น`);
+        return;
+      }
+      location.replace(home);
+    } catch (err) {
+      console.error("load profile failed:", err);
+      showBlocked("เชื่อมต่อ Firestore ไม่ได้ — กรุณาลองใหม่ (กด \"ออกจากระบบ\" แล้ว login อีกครั้งถ้ายังไม่หาย)");
+    }
+  });
+</script>
+</body>
+</html>

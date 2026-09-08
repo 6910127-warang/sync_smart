@@ -5,6 +5,10 @@
 ฟีเจอร์ที่ทำจริงแล้ว:
 - **หน้ารายการคำขอเบิกของหน่วยฉัน** (`staff-hph/requisition-list.html`) — อ้างอิง FT-002, BL-004, BL-005
 - **หน้าสร้างคำขอเบิกยาประจำเดือน** (`staff-hph/requisition-new.html`, เพิ่ม 20260901) — อ้างอิง FT-001, BL-001, BL-002
+- **หน้ารออนุมัติระดับ 1** (`pharmacist/approval-queue-level1.html`, เพิ่ม 20260907) — อ้างอิง FT-002, BL-004
+- **หน้าพิจารณาคำขอ/อนุมัติ-ปฏิเสธระดับ 1** (`pharmacist/approval-review-level1.html`, เพิ่ม 20260907) — อ้างอิง FT-002, BL-004, BL-036 (เฉพาะขอบเขตระดับ 1 — ระดับ 2/ส่งออก/audit-trail ยังไม่ทำ)
+- **Firebase Authentication (email/password) จริง** ทั้งสอง role ข้างต้น (เพิ่ม 20260907, BL-024)
+- **หน้า Login กลางจุดเดียว** (`login.html`, เพิ่ม 20260908) — login แล้ว redirect ไปหน้าแรกของ role อัตโนมัติ แทนฟอร์ม login ที่เคยฝังซ้ำอยู่ใน 4 หน้าจอข้างต้น
 
 ทั้งหมดอ้างอิง [`../01-requirements/backlog.md`](../01-requirements/backlog.md)
 
@@ -13,20 +17,12 @@
 1. เปิด [`firebase-config.js`](firebase-config.js) แล้วแทนที่ค่า placeholder ด้วย config จริงจาก Firebase Console → Project settings → General → Your apps → SDK setup and configuration
 2. เปิด Firestore Database ในโปรเจกต์ (โหมด Native mode) ถ้ายังไม่ได้เปิด
 3. รัน local server (ดูหัวข้อ "การรันดู" ด้านล่าง) แล้วเปิด `seed.html` เพื่อสร้างข้อมูลตัวอย่างไว้ทดสอบ (ลบทิ้งได้ภายหลัง — ไม่ใช่ส่วนหนึ่งของแอปจริง)
-4. เปิด `staff-hph/requisition-list.html` แล้วเลือกหน่วยงานจาก dropdown
+4. ตรวจสอบว่า Firebase Console → Authentication → Sign-in method เปิดใช้งาน provider **Email/Password** แล้ว (โปรเจกต์ `syncsmart-98d1e` ปัจจุบันเปิดอยู่แล้ว — ยืนยันจากการทดสอบจริง 20260907 แต่ถ้าย้ายไปโปรเจกต์ Firebase อื่นต้องเปิดเองก่อน ไม่มีเครื่องมือทำแทนได้)
+5. เปิด `login.html` แล้วเข้าสู่ระบบด้วยอีเมล/รหัสผ่านของบัญชีทดสอบที่สร้างจาก `seed.html` (เช่น `staff-hph-a@smartsync.test` หรือ `pharmacist-a@smartsync.test`) — ระบบจะ redirect ไปหน้าแรกของ role นั้นให้เองตาม `role` ใน `users/{uid}` ไม่ต้องรู้ล่วงหน้าว่าต้องเปิดหน้าไหน — ดูหัวข้อ "Firebase Authentication" ด้านล่าง
 
 ## การรันดู (local server)
 
-เพิ่ม config ใหม่ใน `.claude/launch.json` (คู่กับ `prototype` เดิม):
-
-```json
-{
-  "name": "app",
-  "runtimeExecutable": "py",
-  "runtimeArgs": ["-m", "http.server", "4174", "--directory", "app"],
-  "port": 4174
-}
-```
+config อยู่ใน `.claude/launch.json` (ชื่อ `app`, port 4174) — รันผ่าน [`.claude/no-cache-server.py`](../.claude/no-cache-server.py) (เพิ่ม 20260908) แทน `py -m http.server` ตรงๆ เพราะ `http.server` เดิมไม่ส่ง cache header ทำให้ browser แคชไฟล์ `.js`/`.html` เก่าไว้เงียบๆ (เจอปัญหาจริงตอนทดสอบ BL-024 — แก้โค้ดแล้ว refresh/hard refresh บางครั้งก็ยังเห็นพฤติกรรมเก่าค้างอยู่) wrapper นี้เพิ่มแค่ header `Cache-Control: no-store` ไม่ใช่ build tool
 
 ## Firestore Schema — collection/subcollection ที่ใช้จริงตอนนี้
 
@@ -45,7 +41,7 @@ Document ID: ตัวระบุหน่วยงานเอง (เช่�
 
 ### `users/{uid}` — บัญชีผู้ใช้ (User Account, data-model §3.2)
 
-> ยังไม่ได้ใช้จริงในหน้านี้ (ใช้ dropdown เลือกหน่วยชั่วคราวแทน) — เตรียม schema ไว้ล่วงหน้าสำหรับตอนต่อ Firebase Auth จริง (ดู "ขั้นต่อไป")
+> **ใช้จริงแล้วทั้งสอง role** (อัปเดต 20260907, BL-024) — doc id คือ Firebase Auth UID จริง อ่านโดย `lib/auth.js` (`fetchUserProfile`) ทุกครั้งที่สถานะ login เปลี่ยน เพื่อดึง `role`/`unitId`/`active` มาตัดสินใจแสดงหน้าจอ — ดูหัวข้อ "Firebase Authentication" ด้านล่าง
 
 | Field | ชนิด | จำเป็น | หมายเหตุ |
 |---|---|---|---|
@@ -79,7 +75,7 @@ Document ID: Firebase Auth UID
 | Field | ชนิด | จำเป็น | หมายเหตุ |
 |---|---|---|---|
 | `unitId` (หน่วยงานที่เบิก) | string (ref → `units`) | ใช่ | ใช้ filter `where("unitId","==",...)` |
-| `createdBy` (ผู้สร้างคำขอ) | string (ref → `users`, uid) | ใช่ | **ยังเป็น placeholder string `"unauthenticated-staff-placeholder"` เสมอ** (เขียนโดย `requisition-new.html`) เพราะยังไม่มี Firebase Auth จริง — ไม่ใช่ uid จริง ต้องแทนที่ตอนต่อ BL-024 |
+| `createdBy` (ผู้สร้างคำขอ) | string (ref → `users`, uid) | ใช่ | uid จริงจาก Firebase Auth แล้ว (อัปเดต 20260907, BL-024) — เขียนโดย `requisition-new.html` |
 | `type` (ประเภทคำขอ) | string enum: `"normal"` \| `"emergency"` | ใช่ | ปกติ (รายเดือน) / ฉุกเฉิน (นอกรอบ) |
 | `period` (รอบเดือนที่เบิก) | string `"YYYY-MM"` (พ.ศ.) \| null | บังคับเฉพาะ `type="normal"` | คำขอฉุกเฉินใช้ `createdAt` แทน |
 | `status` (สถานะคำขอ) | string enum: `"pending_level1"` \| `"pending_level2"` \| `"approved"` \| `"ready_to_export"` \| `"dispensed"` \| `"rejected"` | ใช่ | ดูหมายเหตุ "รับแล้ว" ด้านล่าง |
@@ -112,12 +108,12 @@ Document ID: auto-id ของ Firestore (`addDoc`) — คงเป็นตั
 | `drugItemId` (รายการยา) | string (ref → `drugItems`) | ใช่ | |
 | `suggestedQuantity` (ยอดแนะนำเบิก) | integer | ใช่ | คำนวณตอนยืนยันคำขอ = `max(safetyStockThresholds.thresholdValue - selfReportedBalance, 0)` — ถ้าหน่วย/รายการยานั้นยังไม่มี threshold ของเดือนนี้ ใช้ `0` (แสดงผล "— (ยังไม่ตั้งเกณฑ์)" ในฟอร์ม) |
 | `selfReportedBalance` (ยอดคงเหลือปัจจุบันที่แจ้งเอง) | integer | ใช่ | เก็บไว้ไม่ถูกเขียนทับแม้กระทบยอดภายหลัง |
-| `pharmacistConfirmedBalance` (ยอดคงเหลือที่เภสัชกรยืนยัน/แก้ไข) | integer \| null | ไม่บังคับ | มีค่า = ยอดที่ถูกต้อง/มีผลผูกพันแทนยอดเดิม (FR-1.9b) — เขียนภายหลังตอนอนุมัติระดับ 1 (ยังไม่มีหน้านั้น) |
-| `approvedQuantity` (ยอดที่อนุมัติจริง) | integer \| null | ไม่บังคับ | ว่างจนผ่านอนุมัติระดับ 1 — `requisition-new.html` เขียนเป็น `null` เสมอตอนสร้าง |
+| `pharmacistConfirmedBalance` (ยอดคงเหลือที่เภสัชกรยืนยัน/แก้ไข) | integer \| null | ไม่บังคับ | มีค่า = ยอดที่ถูกต้อง/มีผลผูกพันแทนยอดเดิม (FR-1.9b) — เขียนจริงแล้วโดย `pharmacist/approval-review-level1.html` (เพิ่ม 20260907) แต่เป็นช่องกรอก **manual/สมัครใจ** เท่านั้น ไม่มี auto-detect ยอดไม่ตรงกัน (BL-032 เต็มรูปแบบต้องรอ `inventoryBalances`/Epic 2) |
+| `approvedQuantity` (ยอดที่อนุมัติจริง) | integer \| null | ไม่บังคับ | ว่างจนผ่านอนุมัติระดับ 1 — `requisition-new.html` เขียนเป็น `null` เสมอตอนสร้าง, เขียนค่าจริงโดย `pharmacist/approval-review-level1.html` (เพิ่ม 20260907) |
 
 #### Subcollection: `requisitions/{requisitionId}/approvalRecords/{approvalRecordId}` — บันทึกการอนุมัติ (data-model §3.6)
 
-> ยังไม่ได้ใช้ในหน้ารายการ (ต้องใช้ตอนทำหน้าอนุมัติ)
+> ใช้จริงแล้ว (เพิ่ม 20260907) โดย `pharmacist/approval-review-level1.html` — เขียนเฉพาะ `decision: "approved"` (level 1) และ `"rejected"` เท่านั้นในรอบนี้ ยังไม่มี `"adjusted"` และยังไม่มี record ของ level 2 (รอทำหน้าอนุมัติระดับ 2)
 
 | Field | ชนิด | จำเป็น | หมายเหตุ |
 |---|---|---|---|
@@ -160,6 +156,23 @@ Document ID: `{unitId}_{drugItemId}_{referenceMonth}` (deterministic — เข�
 
 อ้างอิงจาก `06-data-model.md` §3.7, §3.9, §3.12–§3.19 (`manualForecastAdjustments`, `historicalUsageRecords`, `inventoryBalances`, `notificationEvents`, `exportFiles`, `businessAuditLog`, `systemAccessLog`, `printableRequisitionDocuments`) — ยังไม่สร้างในรอบนี้เพราะยังไม่มีหน้าจอที่ต้องใช้ ให้ออกแบบ field ตอนถึงหน้าจอที่ต้องใช้จริง (คงรูปแบบ camelCase + trace กลับ field เชิงแนวคิดเดียวกับหัวข้อบนนี้)
 
+## Firebase Authentication (BL-024, เพิ่ม 20260907; login กลาง + แก้บั๊ก cross-tab เพิ่ม 20260908)
+
+เข้าสู่ระบบด้วย **email/password จริง** ผ่าน Firebase Authentication แทนกลไกล็อก session ชั่วคราวผ่าน `localStorage` เดิมทั้งสองแบบแล้ว (`lib/session.js` ของ staff-hph และ `lib/pharmacist-session.js`/`lib/pharmacists.js` ของเภสัชกร — **ลบทั้งสามไฟล์ทิ้งแล้ว**)
+
+- **`login.html`** (เพิ่ม 20260908) — จุดเข้า login เดียวสำหรับทั้งสอง role แทนฟอร์ม login ที่เคยฝังซ้ำอยู่ใน 4 หน้าจอ กรอกอีเมล/รหัสผ่านแล้ว redirect ไปหน้าแรกของ role นั้นอัตโนมัติ (`ROLE_HOME` map ในไฟล์นี้) ตาม `role` ที่อ่านจาก `users/{uid}` — ถ้า login สำเร็จแต่ role ยังไม่มีหน้าจอรองรับ หรือ staff_hph ที่ไม่มี `unitId` จะค้างอยู่หน้านี้พร้อมข้อความ + ปุ่ม "ออกจากระบบ" แทนการ redirect ไปที่ที่ไม่มีอยู่จริง
+- **`lib/auth.js`** — ไฟล์เดียวที่ทั้งสอง role ใช้ร่วมกัน:
+  - `getAuthForApp(app)`, `signIn(auth, email, password)`, `signOutUser(auth)` — ห่อ Firebase Auth SDK ตรงๆ
+  - `fetchUserProfile(db, uid)` — อ่าน `users/{uid}`, คืน `null` ถ้าไม่พบ doc หรือ `active !== true`
+  - `watchAuth(auth, db, expectedRole, callbacks)` — ห่อ `onAuthStateChanged` ให้เรียก `onSignedIn(profile)`/`onSignedOut(message?)`/`onWrongRole(profile)` อัตโนมัติทุกครั้งที่สถานะ login เปลี่ยน (รวมถึงตอนโหลดหน้าครั้งแรกและตอน login/logout จากแท็บอื่น — Firebase sync สถานะข้ามแท็บให้เองอยู่แล้ว ไม่ต้องฟัง `storage` event เพิ่มเหมือนกลไกเดิม)
+  - `authErrorMessage(err)` — แปล error code ของ Firebase Auth เป็นข้อความไทย
+- **สำคัญ — ไม่ sign out อัตโนมัติเมื่อ role ไม่ตรง (แก้บั๊ก 20260908):** ตอนแรก `watchAuth` เรียก `signOutUser()` ทันทีที่เจอ role ไม่ตรง แต่ Firebase Auth ใช้ persistence เดียวกันข้ามทุกแท็บของ origin เดียวกัน — ถ้าเปิดหน้า staff-hph ค้างไว้อีกแท็บระหว่างที่ login หน้าเภสัชกรถูกต้องอยู่แล้วในอีกแท็บ การ sign out อัตโนมัติในแท็บที่ role ไม่ตรงจะไปเตะแท็บที่ login ถูกต้องอยู่แล้วให้หลุดไปด้วย (วนกลับมาหน้า login ไม่จบ) ตอนนี้แก้แล้วโดยไม่ sign out อัตโนมัติ — แค่เรียก `onWrongRole`/`onSignedOut` ให้หน้าจอ redirect ไป `login.html` เฉยๆ ผู้ใช้ต้องกด "ออกจากระบบ" เองถ้าต้องการเปลี่ยนบัญชี (ปุ่มนี้โชว์เสมอเมื่อมี `auth.currentUser`)
+- แต่ละหน้าจอ (`requisition-list.html`, `requisition-new.html`, `approval-queue-level1.html`, `approval-review-level1.html`) เรียก `watchAuth(auth, db, "staff_hph" | "pharmacist", {...})` เพื่อ **guard** เท่านั้น (ไม่มีฟอร์ม login ฝังอยู่แล้ว) — ถ้าไม่ login/role ไม่ตรง/ไม่มี `unitId` จะ `location.replace("../login.html")` กลับไปที่จุดเดียว
+- `requisition-list.html`/`requisition-new.html`: "หน่วยของฉัน" มาจาก `profile.unitId` เสมอ (ไม่มีการเลือกหน่วยเองอีกต่อไป — เจ้าหน้าที่ รพ.สต. สังกัด 1 หน่วยเท่านั้น ตาม [ACL.md](../ACL.md))
+- `approval-queue-level1.html`/`approval-review-level1.html`: ตัวตนเภสัชกรมาจาก `profile.uid`/`profile.displayName` ตรงๆ — ใช้แยกแยะรายบุคคลจริงสำหรับกฎ "ห้ามอนุมัติซ้ำทั้ง 2 ระดับ" (BL-004)
+- `lib/units.js` (`fetchActiveUnits`) ยังใช้อยู่ — แต่เฉพาะแสดงชื่อหน่วยในตาราง (เช่น คอลัมน์ "หน่วย รพ.สต." ของ `approval-queue-level1.html`) ไม่ใช้ทำ dropdown login แล้ว
+- **สร้างบัญชีทดสอบผ่าน `seed.html`** (dev only) — ดูหัวข้อ "วิธีเริ่มใช้งาน" ด้านบน ยังไม่มีหน้าจอ admin สร้างบัญชีจริง (`mustChangePassword`/`twoFactorEnabled` เป็นแค่ field ที่เก็บไว้ ยังไม่มี logic บังคับใช้งานจริงในรอบนี้)
+
 ## Firestore Composite Index ที่ต้องสร้าง (ครั้งเดียว)
 
 Query ของหน้า `requisition-list.html` รวม equality filter กับ `orderBy` บนคนละฟิลด์ ซึ่ง Firestore ไม่สร้าง index ให้อัตโนมัติ ต้องกดสร้างเองครั้งเดียวต่อโปรเจกต์ (ลิงก์ด้านล่างสร้างจาก error จริงของโปรเจกต์ `syncsmart-98d1e` — ถ้าย้ายไปโปรเจกต์อื่นต้องสร้างใหม่ หรือกดลิงก์ที่ error message แจ้งตอนรันจริง):
@@ -169,20 +182,24 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 
 หลังกดแต่ละลิงก์ Firebase Console จะเปิดหน้า "Add index" ให้ตรงตามที่ query ต้องการอยู่แล้ว แค่กด "Create" แล้วรอสถานะเปลี่ยนเป็น "Enabled" (ปกติไม่กี่นาที) ก่อนกลับมารีเฟรชหน้า `requisition-list.html`
 
-## ความปลอดภัย (สำคัญ — ยังไม่ได้ทำในรอบนี้)
+**หมายเหตุ (เพิ่ม 20260907):** หน้า `pharmacist/approval-queue-level1.html` query `requisitions` ด้วย `where status=="pending_level1"` **โดยตั้งใจไม่ใส่ `orderBy`** แล้วเรียง `createdAt` ฝั่ง client แทน (เหมือน pattern ของ `drugItems`/`units`) เพื่อเลี่ยงต้องสร้าง composite index ที่ 3 — อย่าเผลอเพิ่ม `orderBy` เข้าไปตรงๆ เพราะจะทำให้ query พังจนกว่าจะสร้าง index ใหม่
 
-ตอนนี้ยังไม่ได้ตั้ง **Firestore Security Rules** (ค่าเริ่มต้นของโปรเจกต์ใหม่มักจะปิดกั้นทุก request หรือเปิดโล่งหมดแล้วแต่โหมดที่เลือกตอนสร้าง) — ก่อนใช้กับข้อมูลจริง/หน่วยงานจริงต้องกำหนด rule อย่างน้อย:
-- อ่าน/เขียน `requisitions` เฉพาะผู้ใช้ที่ login แล้วและ `unitId` ตรงกับหน่วยของตนเอง (ตาม RBAC, BL-024)
+## ความปลอดภัย (สำคัญ — Security Rules ยังไม่ deploy)
+
+**Firestore Security Rules ฉบับร่างอยู่ที่ [`../firestore.rules`](../firestore.rules) แล้ว แต่ยังไม่ได้ deploy** — ตอนนี้มีกฎเดียว (`allow read, write: if request.auth != null;`) คือบังคับแค่ "ต้อง login แล้ว" เท่านั้น ยังไม่ได้กรองตาม `unitId`/`role` — ก่อนใช้กับข้อมูลจริง/หน่วยงานจริงต้องขยายเป็นอย่างน้อย:
+- อ่าน/เขียน `requisitions` เฉพาะผู้ใช้ที่ login แล้วและ `unitId` ตรงกับหน่วยของตนเอง (ตาม RBAC)
 - ห้ามเขียนตรงจาก client ทับ field ที่ควรถูกกำหนดจาก server-side logic เท่านั้น (เช่น `status`, `recordVersion`, `approvalRecords`)
+- ห้ามเภสัชกรคนเดียวกันอนุมัติทั้ง 2 ระดับของคำขอเดียวกัน (BL-004) — ปัจจุบันบังคับแค่ฝั่ง client (`approval-review-level1.html`) เท่านั้น ยังไม่มี Security Rule คุ้มกัน
 
-**อย่า deploy ให้หน่วยงานจริงใช้ก่อนตั้ง Security Rules** — ตอนนี้ยังเป็น local prototype-to-real ขั้นทดสอบเท่านั้น
+**อย่า deploy ให้หน่วยงานจริงใช้ก่อนขยาย Security Rules ตามข้างต้น** — ตอนนี้ยังเป็น local prototype-to-real ขั้นทดสอบเท่านั้น (แม้ Firebase Authentication จะเป็นของจริงแล้วก็ตาม — ดูหัวข้อด้านบน)
 
 ## ขั้นต่อไป (ยังไม่ทำในรอบนี้ — รอคำสั่งเจาะจง)
 
-1. ต่อ Firebase Authentication จริงแทน dropdown เลือกหน่วยชั่วคราว (อ่าน `unitId` จาก `users/{uid}`) — จะแก้ทั้ง `requisition-list.html` และ `requisition-new.html` พร้อมกัน และแทนที่ `createdBy: "unauthenticated-staff-placeholder"` ด้วย uid จริง
-2. ตั้ง Firestore Security Rules ตามหัวข้อ "ความปลอดภัย"
-3. ทำหน้ารายละเอียดคำขอ (`requisition-detail.html`) เชื่อม `lineItems` subcollection จริง แทนลิงก์ที่ปิดใช้งานไว้ใน `requisition-list.html`
-4. ทำหน้าอนุมัติระดับ 1/2 (BL-004) — จุดที่ต้อง implement การกระทบยอด (FT-008/BL-032) และเขียน `pharmacistConfirmedBalance`/`approvedQuantity`/`approvalRecords` จริง
-5. ทำ Epic 2 (พยากรณ์สต็อก, BL-010/011/012) เพื่อให้ `safetyStockThresholds` มีค่าจริงแทนข้อมูลตัวอย่างจาก `seed.html`
-6. ทำหน้าสร้างคำขอเบิกฉุกเฉิน (BL-009, นอกรอบเดือน) — แยกจาก `requisition-new.html` ที่ทำเฉพาะคำขอปกติ
-7. ทำปุ่ม "ขอปรึกษา" จริง (BL-003) — ต้องรอ BL-014 (ช่องทางแจ้งเตือน LINE OA)
+1. ขยาย Firestore Security Rules ให้กรองตาม `role`/`unitId` จริง ตามหัวข้อ "ความปลอดภัย" (ตอนนี้มีแค่กฎ "ต้อง login" ใน `../firestore.rules`) แล้ว deploy
+2. ทำหน้ารายละเอียดคำขอ (`requisition-detail.html`) เชื่อม `lineItems` subcollection จริง แทนลิงก์ที่ปิดใช้งานไว้ใน `requisition-list.html`
+3. ทำหน้าอนุมัติระดับ 2 (BL-004 — ระดับ 1 เสร็จแล้ว 20260907 ที่ `pharmacist/approval-review-level1.html`) ต้องเพิ่มการเช็ค `approvalRecords where level==1` เทียบ `approverId` กับ uid ของเภสัชกรระดับ 2 ที่ login อยู่ (กฎห้ามคนเดียวกันอนุมัติซ้ำ) และทำหน้าส่งออก Excel + แจ้งเตือนอีเมล/LINE OA (BL-020) ต่อจากนั้น
+4. ทำ Epic 2 (พยากรณ์สต็อก, BL-010/011/012) เพื่อให้ `safetyStockThresholds` มีค่าจริงแทนข้อมูลตัวอย่างจาก `seed.html` — เมื่อทำแล้วจึงค่อยเพิ่ม auto-discrepancy warning เต็มรูปแบบ (BL-032) และช่องกรอกจำนวนคาดการณ์เคสใหม่ (BL-015, FT-013) ในหน้าอนุมัติระดับ 1 ที่ตอนนี้ตัดออกไปก่อน
+5. ทำหน้าสร้างคำขอเบิกฉุกเฉิน (BL-009, นอกรอบเดือน) — แยกจาก `requisition-new.html` ที่ทำเฉพาะคำขอปกติ
+6. ทำปุ่ม "ขอปรึกษา" จริง (BL-003) — ต้องรอ BL-014 (ช่องทางแจ้งเตือน LINE OA)
+7. ทำหน้า audit-trail และเขียน `businessAuditLog` จริง (BL-008) — ยังไม่มีหน้าจอใช้งานจึงยังไม่สร้าง collection นี้
+8. ทำหน้า admin สร้าง/จัดการบัญชีผู้ใช้จริง แทน `seed.html` (dev only) — รวมถึงบังคับใช้งานจริงของ `mustChangePassword`/`twoFactorEnabled`

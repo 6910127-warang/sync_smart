@@ -1,0 +1,191 @@
+<!--
+  Role: เภสัชกร (pharmacist) — ผู้อนุมัติระดับ 1
+  หน้า: รออนุมัติระดับ 1 — เวอร์ชันเชื่อมข้อมูลจริงบน Firebase (Cloud Firestore)
+  อ้างอิง: FT-002, BL-004 — เฉพาะขอบเขตอนุมัติระดับ 1 (ไม่รวมระดับ 2/ส่งออก/audit-trail รอบนี้)
+  หมายเหตุ (อัปเดต 20260907, BL-024): เข้าสู่ระบบด้วย Firebase Authentication (email/password) จริงแล้ว
+  "ตัวตนเภสัชกร" มาจาก users/{uid} ของบัญชีที่ login (ไม่ใช่การเลือกชื่อจากรายชื่ออีกต่อไป) — ดู lib/auth.js
+  หมายเหตุ (อัปเดต 20260908): ฟอร์ม login ย้ายไปรวมที่ ../login.html จุดเดียว (ไม่ได้ฝังในหน้านี้แล้ว) —
+  หน้านี้ทำหน้าที่แค่ guard ผ่าน watchAuth เท่านั้น ถ้ายังไม่ login/role ไม่ตรง จะ redirect ไป ../login.html เสมอ
+  - คิวนี้เป็นข้อมูล "ทั้งเครือข่าย" ไม่กรองหน่วยงาน เพราะเภสัชกรไม่ได้ผูกกับหน่วยใดหน่วยหนึ่งตาม ACL.md
+  - ตัดฟีเจอร์ "ขอปรึกษา" (BL-003) และสรุปจำนวนฉุกเฉิน ออกจากรอบนี้ (ยังไม่มีข้อมูล consult จริง)
+  ดูโครงสร้าง collection/field ทั้งหมดที่ ../README.md
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>รออนุมัติระดับ 1 — SmartSync</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<style>
+  .state-row td { text-align: center !important; color: var(--color-text-secondary); padding: var(--space-6) !important; display: table-cell !important; }
+  .topbar-right { display: flex; align-items: center; gap: var(--space-3); }
+  #loading-view { max-width: 480px; margin: var(--space-8) auto; }
+  #loading-view.hidden, #main-view.hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">SmartSync</div>
+    <a class="nav-item active" href="approval-queue-level1.html">รออนุมัติระดับ 1</a>
+  </aside>
+  <div class="drawer-scrim" onclick="closeDrawer()"></div>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger-btn" aria-label="เปิดเมนู" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span id="topbar-name">เภสัชกร: —</span>
+      </div>
+      <div class="topbar-right">
+        <span>บทบาท: เภสัชกร — ผู้อนุมัติระดับ 1 (ข้อมูลจริงจาก Firestore)</span>
+        <button class="btn-text" id="sign-out-btn" type="button" style="display:none;">ออกจากระบบ</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <div id="loading-view" class="card">
+        <p class="text-secondary">กำลังตรวจสอบสิทธิ์การใช้งาน…</p>
+      </div>
+
+      <div id="main-view" class="hidden">
+        <h1>รออนุมัติระดับ 1</h1>
+        <p class="text-secondary">คำขอเบิกยาทั้งเครือข่ายที่รอการพิจารณาระดับ 1</p>
+
+        <p style="margin-bottom: var(--space-4);"><button class="btn btn-secondary" id="refresh-btn" type="button" style="width:auto;">รีเฟรช</button></p>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>รหัสคำขอ</th>
+              <th>หน่วย รพ.สต.</th>
+              <th>ประเภท</th>
+              <th>วันที่ยื่นคำขอ</th>
+              <th>สถานะ</th>
+              <th>การดำเนินการ</th>
+            </tr>
+          </thead>
+          <tbody id="requisition-rows">
+            <tr class="state-row"><td colspan="6">กำลังโหลดข้อมูล…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../assets/nav.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { firebaseConfig } from "../firebase-config.js";
+  import { fetchActiveUnits } from "../lib/units.js";
+  import { getAuthForApp, signOutUser, watchAuth } from "../lib/auth.js";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuthForApp(app);
+
+  const loadingView = document.getElementById("loading-view");
+  const mainView = document.getElementById("main-view");
+  const signOutBtn = document.getElementById("sign-out-btn");
+  const topbarName = document.getElementById("topbar-name");
+  const rowsBody = document.getElementById("requisition-rows");
+  const refreshBtn = document.getElementById("refresh-btn");
+
+  const TYPE_LABEL = {
+    normal: { text: "ปกติ", badge: "" },
+    emergency: { text: "ฉุกเฉิน", badge: "badge-danger" }
+  };
+
+  function formatThaiDate(timestamp) {
+    if (!timestamp) return "—";
+    const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear() + 543;
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
+  function badgeSpan(label) {
+    const cls = label.badge ? `badge ${label.badge}` : "";
+    return cls ? `<span class="${cls}">${label.text}</span>` : label.text;
+  }
+
+  // ฟอร์ม login รวมอยู่ที่ ../login.html จุดเดียวแล้ว — หน้านี้แค่ redirect กลับไปเมื่อไม่ผ่านเงื่อนไข
+  // (ไม่ login / role ไม่ตรง) ใช้ replace กันไม่ให้ปุ่ม back วนกลับมาหน้าที่โหลดไม่สำเร็จ
+  function redirectToLogin() {
+    location.replace("../login.html");
+  }
+
+  function showMainView(profile) {
+    loadingView.classList.add("hidden");
+    mainView.classList.remove("hidden");
+    signOutBtn.style.display = "";
+    topbarName.textContent = `เภสัชกร: ${profile.displayName}`;
+    loadQueue();
+  }
+
+  function renderState(message) {
+    rowsBody.innerHTML = `<tr class="state-row"><td colspan="6">${message}</td></tr>`;
+  }
+
+  async function loadQueue() {
+    renderState("กำลังโหลดข้อมูล…");
+    try {
+      const [unitList, reqSnap] = await Promise.all([
+        fetchActiveUnits(db),
+        getDocs(query(collection(db, "requisitions"), where("status", "==", "pending_level1")))
+      ]);
+      const unitNameMap = new Map(unitList.map((u) => [u.id, u.name]));
+
+      if (reqSnap.empty) {
+        renderState("ไม่มีคำขอที่รออนุมัติระดับ 1");
+        return;
+      }
+
+      const rows = reqSnap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const at = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const bt = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return bt - at;
+        });
+
+      rowsBody.innerHTML = rows.map((req) => {
+        const typeLabel = TYPE_LABEL[req.type] || { text: req.type, badge: "" };
+        const unitName = unitNameMap.get(req.unitId) || req.unitId;
+        const submittedAt = req.confirmedByStaffAt || req.createdAt;
+        const rowClass = req.type === "emergency" ? ' class="row-alert"' : "";
+        return `
+          <tr${rowClass}>
+            <td data-label="รหัสคำขอ">${req.requisitionCode || req.id}</td>
+            <td data-label="หน่วย รพ.สต.">${unitName}</td>
+            <td data-label="ประเภท">${badgeSpan(typeLabel)}</td>
+            <td data-label="วันที่ยื่นคำขอ">${formatThaiDate(submittedAt)}</td>
+            <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td data-label="การดำเนินการ"><a class="btn-text" href="approval-review-level1.html?id=${encodeURIComponent(req.id)}">พิจารณา</a></td>
+          </tr>`;
+      }).join("");
+    } catch (err) {
+      renderState(`โหลดข้อมูลไม่สำเร็จ: ${err.message} (ดู console)`);
+      console.error("loadQueue failed:", err);
+    }
+  }
+
+  signOutBtn.addEventListener("click", () => {
+    if (!confirm("ออกจากระบบ?")) return;
+    signOutUser(auth);
+  });
+
+  refreshBtn.addEventListener("click", () => loadQueue());
+
+  watchAuth(auth, db, "pharmacist", {
+    onSignedIn: (profile) => showMainView(profile),
+    onSignedOut: redirectToLogin,
+    onWrongRole: redirectToLogin
+  });
+</script>
+</body>
+</html>
