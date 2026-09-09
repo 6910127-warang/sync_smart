@@ -4,7 +4,7 @@
   อ้างอิง: FT-001, BL-001, BL-002 — โครงสร้างข้อมูล/field อ้างอิง 01-requirements/06-data-model.md หัวข้อ 3.4 (Requisition), 3.5 (RequisitionLineItem), 3.8 (SafetyStockThreshold)
   หมายเหตุ (อัปเดต 20260907, BL-024): เข้าสู่ระบบด้วย Firebase Authentication (email/password) จริงแล้ว
   "หน่วยของฉัน" อ่านจาก users/{uid}.unitId ตามบัญชีที่ login (เจ้าหน้าที่ รพ.สต. สังกัด 1 หน่วยเท่านั้น — ยืนยันจากผู้ใช้)
-  ไม่มีการเลือกหน่วยเองอีกต่อไป — ดู lib/auth.js และ README.md หัวข้อ "ความปลอดภัย" (ยังไม่ได้ตั้ง Firestore Security Rules ตาม role/unitId)
+  ไม่มีการเลือกหน่วยเองอีกต่อไป — ดู lib/auth.js และ README.md หัวข้อ "ความปลอดภัย" (Firestore Security Rules กรองตาม role/unitId เขียนไว้แล้วที่ ../firestore.rules แต่ยังไม่ได้ publish จริง)
   "ผู้สร้างคำขอ (createdBy)" ใช้ uid จริงจาก Firebase Auth แล้วเช่นกัน
   หมายเหตุ (อัปเดต 20260908): ฟอร์ม login ย้ายไปรวมที่ ../login.html จุดเดียว (ไม่ได้ฝังในหน้านี้แล้ว) —
   หน้านี้ทำหน้าที่แค่ guard ผ่าน watchAuth เท่านั้น ถ้ายังไม่ login/role ไม่ตรง/ไม่มี unitId จะ redirect ไป ../login.html เสมอ
@@ -110,7 +110,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getFirestore, doc, getDoc, collection, query, where, orderBy, getDocs, writeBatch
+    getFirestore, doc, getDoc, setDoc, collection, query, where, orderBy, getDocs, writeBatch
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { firebaseConfig } from "../firebase-config.js";
   import { generateRequisitionCode } from "../lib/requisition-code.js";
@@ -294,9 +294,11 @@
         unitId: selectedUnit.id, unitCode: selectedUnit.code, codeDate: now
       });
 
-      const batch = writeBatch(db);
+      // สร้างคำขอเบิก (parent) ก่อนแล้ว await ให้ commit เสร็จจริง แยกจาก batch ของ lineItems ด้านล่าง
+      // เพราะ Firestore Security Rules ตรวจสิทธิ์เขียน lineItems โดย get() อ่าน unitId/status ของคำขอนี้กลับมาเช็ค
+      // แต่ get() ใน security rule ไม่การันตีเห็นงานเขียนอื่นในคำขอ/batch เดียวกัน (ดู firestore.rules) — ต้องแยกเป็นคนละ request
       const reqRef = doc(collection(db, "requisitions"));
-      batch.set(reqRef, {
+      await setDoc(reqRef, {
         unitId: selectedUnit.id,
         createdBy: currentUid,
         type: "normal",
@@ -308,6 +310,8 @@
         dispensedAt: null,
         recordVersion: 1
       });
+
+      const batch = writeBatch(db);
       lineItems.forEach((item) => {
         const lineRef = doc(collection(reqRef, "lineItems"));
         batch.set(lineRef, {

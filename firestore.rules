@@ -1,10 +1,188 @@
 rules_version = '2';
 
+// SmartSync — Firestore Security Rules กรองตาม role/unitId (อัปเดต 20260908, แทนกฎเดิม "แค่ต้อง login")
+// อ้างอิงโครงสร้าง collection/field ทั้งหมดจาก app/README.md — แก้ไฟล์นั้นก่อนเสมอถ้า schema เปลี่ยน แล้วมาปรับที่นี่ตาม
+//
+// ขอบเขต: ครอบคลุมเฉพาะ collection/การกระทำที่มีหน้าจอจริงใช้งานอยู่ตอนนี้ (BL-001/002/004/005/024, ระดับอนุมัติ 1 เท่านั้น)
+// ส่วนที่ยังไม่มีหน้าจอ (อนุมัติระดับ 2, ส่งออก Excel, audit-trail, ยืนยันรับยา, Epic 2 พยากรณ์สต็อก) จงใจไม่เปิดสิทธิ์เขียนไว้ล่วงหน้า
+// — ต้องขยายกฎที่นี่พร้อมกับตอนสร้างหน้าจอนั้นจริง (ดู app/README.md หัวข้อ "ขั้นต่อไป")
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // กฎเดียว: ต้องล็อกอิน (Firebase Authentication) ก่อนจึงจะอ่าน/เขียนได้ทุก collection
+
+    // ---------- Helper functions ----------
+    // Cloud Firestore cache ผลลัพธ์ของ get()/exists() ที่ path เดียวกันไว้ตลอดการประเมิน rule ครั้งเดียว
+    // เรียก userData() ซ้ำหลายครั้งในเงื่อนไขเดียวกันจึงนับ read quota แค่ครั้งเดียว ไม่ต้องกังวลเรื่อง cost
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // ผู้ใช้ที่ login แล้วและบัญชียังไม่ถูกระงับ (active == true) — ไม่เช็ค active ตอนอ่าน users doc ของตัวเอง
+    // เพราะแอปต้องอ่านได้แม้ active=false เพื่อโชว์ข้อความ "บัญชีนี้ไม่พร้อมใช้งานแล้ว" (ดู lib/auth.js: fetchUserProfile/watchAuth)
+    function isActiveUser() {
+      return isSignedIn() && userData().active == true;
+    }
+
+    function hasRole(role) {
+      return isActiveUser() && userData().role == role;
+    }
+
+    function isStaffHph() { return hasRole('staff_hph'); }
+    function isPharmacist() { return hasRole('pharmacist'); }
+    function isExecutive() { return hasRole('executive'); }
+    function isAdmin() { return hasRole('admin'); }
+
+    function myUnitId() { return userData().unitId; }
+
+    function requisitionData(requisitionId) {
+      return get(/databases/$(database)/documents/requisitions/$(requisitionId)).data;
+    }
+
+    // เภสัชกร/ผู้บริหาร/แอดมิน เห็นคำขอทั้งเครือข่ายเสมอ (เภสัชกรไม่ผูกหน่วยงานตาม ACL.md)
+    // เจ้าหน้าที่ รพ.สต. เห็นเฉพาะคำขอของหน่วยตัวเอง
+    function canAccessRequisition(requisitionId) {
+      return isAdmin() || isExecutive() || isPharmacist()
+        || (isStaffHph() && requisitionData(requisitionId).unitId == myUnitId());
+    }
+
+    // ---------- users/{uid} — data-model §3.2 ----------
+    // อ่านได้เฉพาะ doc ตัวเอง (ทุกหน้าจอ guard ผ่าน watchAuth ต้องอ่าน users/{ตัวเอง} เสมอ) หรือ admin
+    // เขียนได้เฉพาะ admin เท่านั้น — ยังไม่มีหน้า admin จริง (ใช้ seed.html แทนตอน dev เท่านั้น
+    // ดู app/README.md หัวข้อ "ความปลอดภัย" เรื่องผลกระทบต่อ seed.html หลังใช้กฎชุดนี้)
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ---------- units/{unitId} — data-model §3.1 ----------
+    // ข้อมูลอ้างอิงที่ไม่ sensitive (ชื่อ/ประเภทหน่วยงาน) — ผู้ใช้ที่ login แล้วทุก role อ่านได้หมด
+    // (staff-hph/pharmacist ทุกหน้าจอ query/get collection นี้เพื่อแสดงชื่อหน่วย)
+    match /units/{unitId} {
+      allow read: if isActiveUser();
+      allow write: if isAdmin();
+    }
+
+    // ---------- drugItems/{drugItemId} — data-model §3.3 ----------
+    // รายการยาเป็นข้อมูลอ้างอิงที่ทุก role อ่านได้ — เขียนได้เฉพาะเภสัชกร/แอดมิน (เจ้าของข้อมูลยาตาม CLAUDE.md)
+    match /drugItems/{drugItemId} {
+      allow read: if isActiveUser();
+      allow write: if isAdmin() || isPharmacist();
+    }
+
+    // ---------- safetyStockThresholds/{thresholdId} — data-model §3.8 ----------
+    // staff-hph อ่านได้เฉพาะเกณฑ์ของหน่วยตัวเอง (ตรงกับ query where unitId==... ในหน้า requisition-new.html)
+    // เขียนได้เฉพาะเภสัชกร/แอดมิน — ยังไม่มีหน้าจอเขียนจริง (รอ Epic 2 พยากรณ์สต็อก)
+    match /safetyStockThresholds/{thresholdId} {
+      allow read: if isAdmin() || isExecutive() || isPharmacist()
+        || (isStaffHph() && resource.data.unitId == myUnitId());
+      allow write: if isAdmin() || isPharmacist();
+    }
+
+    // ---------- counters/{unitId}_{yyyyMM} — implementation-only, ใช้ generate requisitionCode ----------
+    // ไม่ใช่ข้อมูลธุรกิจจริง (แค่เลขรันภายใน) แต่ยังกรองตามหน่วยงานไว้เพื่อกันการชนกันของเลขรันข้ามหน่วย
+    // ใช้ exists() ก่อนเช็ค resource.data เสมอ เพราะ transaction สร้างคำขอครั้งแรกของหน่วย/เดือนนั้นจะ get() doc ที่ยังไม่มีอยู่จริง
+    // (ถ้าอ้าง resource.data ตรงๆ ตอน doc ไม่มีอยู่ resource จะเป็น null แล้ว rule error/deny ทันที)
+    match /counters/{counterId} {
+      allow get: if isAdmin()
+        || (isStaffHph() && (!exists(/databases/$(database)/documents/counters/$(counterId)) || resource.data.unitId == myUnitId()));
+      allow list: if isAdmin(); // ไม่มีหน้าจอไหน list counters ทั้งหมด
+      allow create: if isAdmin() || (isStaffHph() && request.resource.data.unitId == myUnitId());
+      allow update: if isAdmin() || (isStaffHph() && resource.data.unitId == myUnitId() && request.resource.data.unitId == myUnitId());
+      allow delete: if isAdmin();
+    }
+
+    // ---------- requisitions/{requisitionId} — data-model §3.4 ----------
+    match /requisitions/{requisitionId} {
+      allow read: if isAdmin() || isExecutive() || isPharmacist()
+        || (isStaffHph() && resource.data.unitId == myUnitId());
+
+      // staff-hph สร้างคำขอของหน่วยตัวเองเท่านั้น ต้องเริ่มที่สถานะ/เวอร์ชันเริ่มต้นที่กำหนดไว้เสมอ
+      // ห้ามสร้างคำขอที่ status/recordVersion เป็นค่าอื่น (กัน client ปลอมสถานะข้ามขั้นตอนอนุมัติ)
+      allow create: if isStaffHph()
+        && request.resource.data.unitId == myUnitId()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.status == 'pending_level1'
+        && request.resource.data.recordVersion == 1
+        && request.resource.data.type in ['normal', 'emergency'];
+
+      // ขอบเขตปัจจุบัน: เฉพาะการอนุมัติ/ปฏิเสธระดับ 1 (pharmacist/approval-review-level1.html, BL-004/BL-036)
+      // แก้ได้แค่ status/recordVersion เท่านั้น ห้ามแตะ field อื่น (unitId, createdBy, requisitionCode ฯลฯ)
+      // ต้องเพิ่มเงื่อนไข transition ของระดับ 2 ที่นี่พร้อมกับตอนสร้างหน้าอนุมัติระดับ 2 จริง (ดู README.md "ขั้นต่อไป")
+      allow update: if isAdmin()
+        || (isPharmacist()
+            && resource.data.status == 'pending_level1'
+            && request.resource.data.status in ['pending_level2', 'rejected']
+            && request.resource.data.recordVersion == resource.data.recordVersion + 1
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'recordVersion']));
+
+      // ไม่อนุญาตให้ลบคำขอเบิกจาก client เด็ดขาด (รักษาความสมบูรณ์ของ audit trail)
+      allow delete: if false;
+
+      // ----- lineItems/{lineItemId} — data-model §3.5 -----
+      match /lineItems/{lineItemId} {
+        allow read: if canAccessRequisition(requisitionId);
+
+        // สร้างพร้อมกับคำขอเบิกใหม่เท่านั้น (requisition-new.html เขียนหลัง requisitions/{id} ถูกสร้างและ commit แล้ว
+        // ไม่ใช่ batch เดียวกัน — เพราะ get() ใน security rule ไม่การันตีเห็นงานเขียนอื่นในคำขอ/batch เดียวกัน)
+        allow create: if isStaffHph()
+          && requisitionData(requisitionId).unitId == myUnitId()
+          && requisitionData(requisitionId).status == 'pending_level1'
+          && request.resource.data.pharmacistConfirmedBalance == null
+          && request.resource.data.approvedQuantity == null
+          && request.resource.data.suggestedQuantity is int && request.resource.data.suggestedQuantity >= 0
+          && request.resource.data.selfReportedBalance is int && request.resource.data.selfReportedBalance >= 0;
+
+        // เภสัชกรแก้ได้เฉพาะตอนพิจารณาระดับ 1 (approval-review-level1.html) และแก้ได้แค่ 2 field นี้เท่านั้น
+        allow update: if isPharmacist()
+          && requisitionData(requisitionId).status == 'pending_level1'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['approvedQuantity', 'pharmacistConfirmedBalance'])
+          && request.resource.data.approvedQuantity is int && request.resource.data.approvedQuantity >= 0
+          && (request.resource.data.pharmacistConfirmedBalance == null
+              || (request.resource.data.pharmacistConfirmedBalance is int && request.resource.data.pharmacistConfirmedBalance >= 0));
+
+        allow delete: if false;
+      }
+
+      // ----- approvalRecords/{approvalRecordId} — data-model §3.6 -----
+      match /approvalRecords/{approvalRecordId} {
+        allow read: if canAccessRequisition(requisitionId);
+
+        // ขอบเขตปัจจุบัน: เฉพาะ level 1 เท่านั้น (ยังไม่มีหน้าอนุมัติระดับ 2) — บันทึกเป็น audit trail ที่แก้ไข/ลบไม่ได้
+        allow create: if isPharmacist()
+          && requisitionData(requisitionId).status == 'pending_level1'
+          && request.resource.data.level == 1
+          && request.resource.data.approverId == request.auth.uid
+          && request.resource.data.decision in ['approved', 'rejected']
+          && (request.resource.data.decision == 'rejected'
+              ? (request.resource.data.reason is string && request.resource.data.reason.size() > 0)
+              : request.resource.data.reason == null);
+
+        allow update, delete: if false;
+      }
+    }
+
+    // ---------- goodsReceiptRecords/{receiptId} — data-model §3.10 ----------
+    // อ่านได้: staff-hph เฉพาะของหน่วยตัวเอง (ตรงกับ query where receivingUnitId==... ที่ requisition-list.html ใช้),
+    // เภสัชกร/ผู้บริหาร/แอดมินอ่านได้ทั้งเครือข่าย
+    // เขียน: ยังไม่มีหน้าจอยืนยันรับยาจริง (รอคำสั่งเข้าสู่เฟสพัฒนา) จึงยังไม่เปิดสิทธิ์เขียนจาก client เลย
+    match /goodsReceiptRecords/{receiptId} {
+      allow read: if isAdmin() || isExecutive() || isPharmacist()
+        || (isStaffHph() && resource.data.receivingUnitId == myUnitId());
+      allow write: if false;
+    }
+
+    // ---------- collection อื่นที่ยังไม่ได้สร้าง/ยังไม่มีหน้าจอใช้งาน ----------
+    // (manualForecastAdjustments, historicalUsageRecords, inventoryBalances, notificationEvents,
+    //  exportFiles, businessAuditLog, systemAccessLog, printableRequisitionDocuments)
+    // ปฏิเสธทุกการเข้าถึงไว้ก่อนอย่างชัดเจน — เพิ่มกฎเฉพาะตอนสร้างหน้าจอที่ต้องใช้จริง
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

@@ -3,8 +3,8 @@
 // (lib/session.js ของ staff-hph, lib/pharmacist-session.js + lib/pharmacists.js ของเภสัชกร — ลบทั้งสามไฟล์แล้ว)
 // อ่าน role/unitId จริงจาก users/{uid} (doc id = Firebase Auth UID) แทนค่าที่เก็บไว้ในเบราว์เซอร์เดิม
 //
-// สำคัญ: ยังไม่ได้ตั้ง Firestore Security Rules ตาม role/unitId (ดู README.md หัวข้อ "ความปลอดภัย")
-// — ต้องตั้งก่อน deploy ให้หน่วยงานจริงใช้งาน
+// สำคัญ: Firestore Security Rules กรองตาม role/unitId เขียนไว้แล้วที่ ../../firestore.rules (เพิ่ม 20260908)
+// publish จริงแล้วผ่าน Firebase CLI (20260909) — ดู README.md หัวข้อ "ความปลอดภัย" สำหรับรายละเอียด/ขอบเขต
 
 import {
   getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged

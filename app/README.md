@@ -184,22 +184,46 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 
 **หมายเหตุ (เพิ่ม 20260907):** หน้า `pharmacist/approval-queue-level1.html` query `requisitions` ด้วย `where status=="pending_level1"` **โดยตั้งใจไม่ใส่ `orderBy`** แล้วเรียง `createdAt` ฝั่ง client แทน (เหมือน pattern ของ `drugItems`/`units`) เพื่อเลี่ยงต้องสร้าง composite index ที่ 3 — อย่าเผลอเพิ่ม `orderBy` เข้าไปตรงๆ เพราะจะทำให้ query พังจนกว่าจะสร้าง index ใหม่
 
-## ความปลอดภัย (สำคัญ — Security Rules ยังไม่ deploy)
+## ความปลอดภัย (Security Rules publish จริงแล้ว 20260909 — deploy ผ่าน Firebase CLI)
 
-**Firestore Security Rules ฉบับร่างอยู่ที่ [`../firestore.rules`](../firestore.rules) แล้ว แต่ยังไม่ได้ deploy** — ตอนนี้มีกฎเดียว (`allow read, write: if request.auth != null;`) คือบังคับแค่ "ต้อง login แล้ว" เท่านั้น ยังไม่ได้กรองตาม `unitId`/`role` — ก่อนใช้กับข้อมูลจริง/หน่วยงานจริงต้องขยายเป็นอย่างน้อย:
-- อ่าน/เขียน `requisitions` เฉพาะผู้ใช้ที่ login แล้วและ `unitId` ตรงกับหน่วยของตนเอง (ตาม RBAC)
-- ห้ามเขียนตรงจาก client ทับ field ที่ควรถูกกำหนดจาก server-side logic เท่านั้น (เช่น `status`, `recordVersion`, `approvalRecords`)
-- ห้ามเภสัชกรคนเดียวกันอนุมัติทั้ง 2 ระดับของคำขอเดียวกัน (BL-004) — ปัจจุบันบังคับแค่ฝั่ง client (`approval-review-level1.html`) เท่านั้น ยังไม่มี Security Rule คุ้มกัน
+**[`../firestore.rules`](../firestore.rules) กรองตาม `role`/`unitId` จริงแล้ว** (เพิ่ม 20260908, แทนกฎเดิม "แค่ต้อง login") — สรุปกฎหลัก:
 
-**อย่า deploy ให้หน่วยงานจริงใช้ก่อนขยาย Security Rules ตามข้างต้น** — ตอนนี้ยังเป็น local prototype-to-real ขั้นทดสอบเท่านั้น (แม้ Firebase Authentication จะเป็นของจริงแล้วก็ตาม — ดูหัวข้อด้านบน)
+- `users/{uid}`: อ่านได้เฉพาะ doc ตัวเองหรือ admin, เขียนได้เฉพาะ admin
+- `units`/`drugItems`: อ่านได้ทุก role ที่ login แล้ว (ข้อมูลอ้างอิงไม่ sensitive), เขียนได้เฉพาะ admin (`units`) หรือ admin/เภสัชกร (`drugItems`)
+- `safetyStockThresholds`: staff-hph อ่านได้เฉพาะเกณฑ์ของหน่วยตัวเอง, เภสัชกร/ผู้บริหาร/admin อ่านได้ทั้งเครือข่าย, เขียนได้เฉพาะ admin/เภสัชกร
+- `counters`: กรองตาม `unitId` เช่นกัน (staff-hph แก้ได้เฉพาะตัวนับของหน่วยตัวเอง)
+- `requisitions`: staff-hph อ่าน/สร้างได้เฉพาะของหน่วยตัวเอง (สร้างต้องเริ่มที่ `status: "pending_level1"`, `recordVersion: 1` เท่านั้น กัน client ปลอมสถานะข้ามขั้นตอน) — เภสัชกร/ผู้บริหาร/admin อ่านได้ทั้งเครือข่าย — เภสัชกรแก้ได้เฉพาะ `status`/`recordVersion` ตอน pending_level1 เท่านั้น (ขอบเขตปัจจุบัน: เฉพาะ transition ของระดับ 1 — ต้องขยายกฎตอนทำหน้าอนุมัติระดับ 2 จริง) — **ห้ามลบจาก client เด็ดขาด**
+  - `lineItems`/`approvalRecords` (subcollection): สิทธิ์อ่าน/เขียนอิงจาก `unitId`/`status` ของคำขอแม่ (อ่านผ่าน `get()`) — เภสัชกรแก้ `lineItems` ได้เฉพาะ `approvedQuantity`/`pharmacistConfirmedBalance`, สร้าง `approvalRecords` ได้เฉพาะ `level: 1` เท่านั้น (ขอบเขตปัจจุบัน) — ทั้งคู่ **ห้ามแก้/ลบหลังสร้างแล้ว**
+- `goodsReceiptRecords`: staff-hph อ่านได้เฉพาะของหน่วยตัวเอง (ตาม `receivingUnitId`), เภสัชกร/ผู้บริหาร/admin อ่านได้ทั้งเครือข่าย — **ยังไม่เปิดสิทธิ์เขียนจาก client เลย** เพราะยังไม่มีหน้าจอยืนยันรับยาจริง
+- collection อื่นที่ยังไม่ได้สร้าง (ดูหัวข้อด้านบน) — ปฏิเสธทุกการเข้าถึงไว้ก่อนอย่างชัดเจน
+
+**หมายเหตุการเปลี่ยนโค้ดที่มากับกฎชุดนี้ (สำคัญ):**
+- `requisition-new.html` เปลี่ยนจากเขียน `requisitions` doc + `lineItems` subcollection ใน `writeBatch` เดียวกัน มาเป็น `await setDoc(reqRef, ...)` ให้ commit เสร็จก่อน แล้วค่อย `writeBatch` แยกสำหรับ `lineItems` — เพราะ security rule ของ `lineItems` ต้อง `get()` อ่าน `unitId`/`status` ของคำขอแม่กลับมาเช็ค แต่ Firestore ไม่การันตีว่า `get()` ใน security rule จะเห็นงานเขียนอื่นที่อยู่ใน batch/transaction เดียวกัน (เอกสาร Firestore ระบุชัดว่า "get() might not reflect changes made by other operations within the same request") จึงต้องแยกเป็นคนละ request เพื่อให้ rule ประเมินถูกต้อง — **ผลข้างเคียงที่ยอมรับ:** ถ้า batch ของ `lineItems` fail หลัง `requisitions` doc commit ไปแล้ว จะเหลือคำขอเบิกที่ไม่มีรายการยา (orphan) ค้างไว้ — เป็น edge case ที่หายากมาก (ไม่มี backend/Cloud Function ให้ rollback อัตโนมัติในสถาปัตยกรรม static ล้วนของโปรเจกต์นี้)
+- `requisition-list.html` เพิ่ม `where("receivingUnitId", "==", unitId)` เข้าไปใน query ของ `hasReceipt()` (เดิมกรองแค่ `requisitionId`) — เพราะ security rule ของ `goodsReceiptRecords` กรองตาม `receivingUnitId` และ Firestore ปฏิเสธทั้ง query ทันทีถ้า query ไม่มี equality filter ที่ตรงกับเงื่อนไขใน rule (ไม่ใช่แค่กรองผลลัพธ์บางส่วนออก)
+
+**ผลกระทบต่อ `seed.html` (dev tool) — สำคัญ:** กฎชุดนี้จะทำให้ `seed.html` เขียนข้อมูลไม่ได้อีกต่อไปในหลายจุด เพราะ:
+- เขียน `users/{uid}` ต้องเป็น admin เท่านั้น (seed.html ไม่ได้ login เป็น admin)
+- เขียน/ลบ `requisitions`, `counters` ต้องผ่านการเช็ค role/unitId ที่ seed script (ซึ่งรันแบบไม่ login บน primary Firestore instance) ไม่ผ่านเช่นกัน
+- ลบ `requisitions`/`counters` ไม่ได้เลยจาก client (ตั้งใจปิดไว้ถาวร แม้เป็น admin)
+
+ทางเลือกสำหรับ dev/test ต่อจากนี้ (เลือกใช้ได้ตามสะดวก ไม่มีอันไหน "ถูกต้อง" ตายตัว):
+1. สลับไปใช้กฎเดิม (`allow read, write: if request.auth != null;`) ชั่วคราวตอนรัน `seed.html` แล้วเปลี่ยนกลับมาใช้กฎชุดนี้ก่อนทดสอบ RBAC จริง
+2. สร้าง Firebase project แยกสำหรับ dev/test ที่ยังใช้กฎแบบเปิด ส่วน project จริงใช้กฎชุดนี้
+3. ใส่ข้อมูลตัวอย่างผ่าน Firebase Console → Firestore Database (แก้ข้อมูลตรงผ่าน Console ไม่ถูกจำกัดโดย Security Rules เพราะไม่ได้ผ่าน client SDK)
+
+**Publish แล้ว (20260909) ผ่าน Firebase CLI** — `firebase.cmd deploy --only firestore:rules` (ใช้ `firebase.cmd` แทน `firebase` เปล่าๆ บน Windows PowerShell เพราะ execution policy เริ่มต้นบล็อก shim `.ps1` ของ npm — ดู `firebase.json`/`.firebaserc` ที่ root ของ config ที่ใช้ deploy) พร้อมกับ Firebase Hosting ของ `app/` ที่ `https://syncsmart-98d1e.web.app` (`firebase.cmd deploy --only hosting`) — สอง target นี้ deploy แยกคำสั่งกันได้ หรือรวมเป็น `firebase.cmd deploy --only hosting,firestore:rules` คำสั่งเดียวก็ได้
+
+**ก่อน publish ได้ทำไปแล้ว:**
+- ยืนยันด้วยการทดสอบจริง — login เป็น staff-hph หน่วย A แล้วลองอ่าน/เขียนคำขอของหน่วย B ถูกปฏิเสธจริง (`permission-denied`), ลอง approve คำขอเดิม 2 ครั้งด้วย recordVersion เก่าถูกปฏิเสธจริง, ไม่ login เข้าหน้าจอตรงๆ ถูก redirect กลับ `login.html` — ผ่านทั้งหมด
+- สร้างบัญชี `role: "admin"` ไว้แล้ว 1 บัญชีผ่าน Firebase Console (Authentication → Add user + Firestore Database → doc `users/{uid}`) ก่อน publish ตามที่ระบุไว้
 
 ## ขั้นต่อไป (ยังไม่ทำในรอบนี้ — รอคำสั่งเจาะจง)
 
-1. ขยาย Firestore Security Rules ให้กรองตาม `role`/`unitId` จริง ตามหัวข้อ "ความปลอดภัย" (ตอนนี้มีแค่กฎ "ต้อง login" ใน `../firestore.rules`) แล้ว deploy
-2. ทำหน้ารายละเอียดคำขอ (`requisition-detail.html`) เชื่อม `lineItems` subcollection จริง แทนลิงก์ที่ปิดใช้งานไว้ใน `requisition-list.html`
-3. ทำหน้าอนุมัติระดับ 2 (BL-004 — ระดับ 1 เสร็จแล้ว 20260907 ที่ `pharmacist/approval-review-level1.html`) ต้องเพิ่มการเช็ค `approvalRecords where level==1` เทียบ `approverId` กับ uid ของเภสัชกรระดับ 2 ที่ login อยู่ (กฎห้ามคนเดียวกันอนุมัติซ้ำ) และทำหน้าส่งออก Excel + แจ้งเตือนอีเมล/LINE OA (BL-020) ต่อจากนั้น
-4. ทำ Epic 2 (พยากรณ์สต็อก, BL-010/011/012) เพื่อให้ `safetyStockThresholds` มีค่าจริงแทนข้อมูลตัวอย่างจาก `seed.html` — เมื่อทำแล้วจึงค่อยเพิ่ม auto-discrepancy warning เต็มรูปแบบ (BL-032) และช่องกรอกจำนวนคาดการณ์เคสใหม่ (BL-015, FT-013) ในหน้าอนุมัติระดับ 1 ที่ตอนนี้ตัดออกไปก่อน
-5. ทำหน้าสร้างคำขอเบิกฉุกเฉิน (BL-009, นอกรอบเดือน) — แยกจาก `requisition-new.html` ที่ทำเฉพาะคำขอปกติ
-6. ทำปุ่ม "ขอปรึกษา" จริง (BL-003) — ต้องรอ BL-014 (ช่องทางแจ้งเตือน LINE OA)
-7. ทำหน้า audit-trail และเขียน `businessAuditLog` จริง (BL-008) — ยังไม่มีหน้าจอใช้งานจึงยังไม่สร้าง collection นี้
+1. ทำหน้ารายละเอียดคำขอ (`requisition-detail.html`) เชื่อม `lineItems` subcollection จริง แทนลิงก์ที่ปิดใช้งานไว้ใน `requisition-list.html`
+2. ทำหน้าอนุมัติระดับ 2 (BL-004 — ระดับ 1 เสร็จแล้ว 20260907 ที่ `pharmacist/approval-review-level1.html`) ต้องเพิ่มการเช็ค `approvalRecords where level==1` เทียบ `approverId` กับ uid ของเภสัชกรระดับ 2 ที่ login อยู่ (กฎห้ามคนเดียวกันอนุมัติซ้ำ) **และขยาย `firestore.rules` ให้รองรับ transition/approvalRecords ระดับ 2 ด้วย (ตอนนี้กฎเปิดไว้แค่ระดับ 1 — ต้อง `firebase.cmd deploy --only firestore:rules` ใหม่หลังแก้)** และทำหน้าส่งออก Excel + แจ้งเตือนอีเมล/LINE OA (BL-020) ต่อจากนั้น
+3. ทำ Epic 2 (พยากรณ์สต็อก, BL-010/011/012) เพื่อให้ `safetyStockThresholds` มีค่าจริงแทนข้อมูลตัวอย่างจาก `seed.html` — เมื่อทำแล้วจึงค่อยเพิ่ม auto-discrepancy warning เต็มรูปแบบ (BL-032) และช่องกรอกจำนวนคาดการณ์เคสใหม่ (BL-015, FT-013) ในหน้าอนุมัติระดับ 1 ที่ตอนนี้ตัดออกไปก่อน
+4. ทำหน้าสร้างคำขอเบิกฉุกเฉิน (BL-009, นอกรอบเดือน) — แยกจาก `requisition-new.html` ที่ทำเฉพาะคำขอปกติ
+5. ทำปุ่ม "ขอปรึกษา" จริง (BL-003) — ต้องรอ BL-014 (ช่องทางแจ้งเตือน LINE OA)
+6. ทำหน้า audit-trail และเขียน `businessAuditLog` จริง (BL-008) — ยังไม่มีหน้าจอใช้งานจึงยังไม่สร้าง collection นี้ (`firestore.rules` ปฏิเสธไว้ก่อนแล้ว ต้องเพิ่มกฎตอนสร้างจริง)
+7. ทำหน้ายืนยันรับยาจริง เขียน `goodsReceiptRecords` (ตอนนี้อ่านได้อย่างเดียว เขียนถูกปิดไว้ใน `firestore.rules` เพราะยังไม่มีหน้าจอ)
 8. ทำหน้า admin สร้าง/จัดการบัญชีผู้ใช้จริง แทน `seed.html` (dev only) — รวมถึงบังคับใช้งานจริงของ `mustChangePassword`/`twoFactorEnabled`

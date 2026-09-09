@@ -4,7 +4,7 @@
   อ้างอิง: FT-002, BL-004, BL-005 — โครงสร้างข้อมูล/field อ้างอิง 01-requirements/06-data-model.md หัวข้อ 3.4 (Requisition)
   หมายเหตุ (อัปเดต 20260907, BL-024): เข้าสู่ระบบด้วย Firebase Authentication (email/password) จริงแล้ว
   "หน่วยของฉัน" อ่านจาก users/{uid}.unitId ตามบัญชีที่ login (เจ้าหน้าที่ รพ.สต. สังกัด 1 หน่วยเท่านั้น — ยืนยันจากผู้ใช้)
-  ไม่มีการเลือกหน่วยเองอีกต่อไป — ดู lib/auth.js และ README.md หัวข้อ "ความปลอดภัย" (ยังไม่ได้ตั้ง Firestore Security Rules ตาม role/unitId)
+  ไม่มีการเลือกหน่วยเองอีกต่อไป — ดู lib/auth.js และ README.md หัวข้อ "ความปลอดภัย" (Firestore Security Rules กรองตาม role/unitId เขียนไว้แล้วที่ ../firestore.rules แต่ยังไม่ได้ publish จริง)
   หมายเหตุ (อัปเดต 20260908): ฟอร์ม login ย้ายไปรวมที่ ../login.html จุดเดียว (ไม่ได้ฝังในหน้านี้แล้ว) —
   หน้านี้ทำหน้าที่แค่ guard ผ่าน watchAuth เท่านั้น ถ้ายังไม่ login/role ไม่ตรง/ไม่มี unitId จะ redirect ไป ../login.html เสมอ
   ดูโครงสร้าง collection/field ทั้งหมดที่ ../README.md
@@ -155,10 +155,13 @@
     loadRequisitions(profile.unitId);
   }
 
-  async function hasReceipt(requisitionId) {
+  async function hasReceipt(requisitionId, unitId) {
+    // ใส่ where("receivingUnitId", ...) เพิ่มจาก requisitionId เดิม เพื่อให้ตรงกับ Firestore Security Rules
+    // ที่กรองการอ่าน goodsReceiptRecords ตาม unitId ของเจ้าหน้าที่ที่ login อยู่ (ดู firestore.rules)
     const q = query(
       collection(db, "goodsReceiptRecords"),
       where("requisitionId", "==", requisitionId),
+      where("receivingUnitId", "==", unitId),
       limit(1)
     );
     const snap = await getDocs(q);
@@ -188,7 +191,7 @@
         const req = doc.data();
         const typeLabel = TYPE_LABEL[req.type] || { text: req.type, badge: "" };
         let statusLabel = STATUS_LABEL[req.status] || { text: req.status, badge: "" };
-        if (req.status === "dispensed" && await hasReceipt(doc.id)) {
+        if (req.status === "dispensed" && await hasReceipt(doc.id, unitId)) {
           statusLabel = RECEIVED_LABEL;
         }
         // วันที่ยื่นคำขอ = confirmedByStaffAt (วันที่เจ้าหน้าที่กดยืนยันคำขอ ตาม FR-1.1a) — ใช้ createdAt แทนถ้ายังไม่ยืนยัน
