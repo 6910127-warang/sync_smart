@@ -1,5 +1,7 @@
 # SmartSync
 
+**เว็บออนไลน์:** [https://syncsmart-98d1e.web.app](https://syncsmart-98d1e.web.app)
+
 ระบบสนับสนุนการเบิกยา SmartSync เครือข่าย รพ.สต. อำเภอเมือง จังหวัดเชียงราย
 
 SmartSync — A Requisition Support System for Inventory Balance in HPH Networks, Mueang Chiang Rai
