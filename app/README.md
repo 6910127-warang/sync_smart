@@ -217,6 +217,20 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 - ยืนยันด้วยการทดสอบจริง — login เป็น staff-hph หน่วย A แล้วลองอ่าน/เขียนคำขอของหน่วย B ถูกปฏิเสธจริง (`permission-denied`), ลอง approve คำขอเดิม 2 ครั้งด้วย recordVersion เก่าถูกปฏิเสธจริง, ไม่ login เข้าหน้าจอตรงๆ ถูก redirect กลับ `login.html` — ผ่านทั้งหมด
 - สร้างบัญชี `role: "admin"` ไว้แล้ว 1 บัญชีผ่าน Firebase Console (Authentication → Add user + Firestore Database → doc `users/{uid}`) ก่อน publish ตามที่ระบุไว้
 
+## Hosting ทางเลือก — ย้ายไป Hostinger (เพิ่ม 20260912 — เป็นแนวทางเตรียมไว้เท่านั้น ยังไม่ได้ย้ายจริง)
+
+สถาปัตยกรรมเป็น static file ล้วน (`app/` ไม่มี build step) จึงย้ายไปโฮสต์ static ที่ไหนก็ได้โดยไม่กระทบ backend — Firebase Hosting (`https://syncsmart-98d1e.web.app`) ทำหน้าที่แค่เก็บไฟล์ ส่วน **Firestore + Firebase Authentication ยังอยู่ที่ Firebase เหมือนเดิมไม่ว่าจะย้าย hosting ไปที่ไหน**
+
+ขั้นตอนถ้าจะย้ายไป Hostinger:
+1. อัปโหลดเนื้อหาทั้งหมดในโฟลเดอร์ `app/` (ยกเว้น `seed.html` — dev tool เท่านั้น เหมือนที่ exclude ไว้ใน [`../firebase.json`](../firebase.json) ปัจจุบัน) ไปที่ `public_html` ของ Hostinger ผ่าน File Manager หรือ FTP/SFTP — ไม่มี build/compile step
+2. เพิ่มโดเมนของ Hostinger เข้า Firebase Console → Authentication → Settings → Authorized domains — ถ้าลืมขั้นนี้ login จะพังทันทีด้วย error `auth/unauthorized-domain`
+3. เปิด SSL/HTTPS บน Hostinger (ปกติมี Let's Encrypt ฟรีให้เปิดใน hPanel)
+4. `firestore.rules` ไม่ต้องแก้อะไร — กรองจาก auth token (`role`/`unitId`) ไม่ได้กรองจาก origin ของ hosting
+5. ตรวจ case-sensitivity ของทุก path ที่อ้างอิง (`src`/`href`/`import`) เทียบกับชื่อไฟล์จริงก่อนอัปโหลด — เครื่อง dev เป็น Windows (ไม่สนตัวพิมพ์เล็ก-ใหญ่) แต่ Hostinger shared hosting ส่วนใหญ่เป็น Linux (สนตัวพิมพ์เล็ก-ใหญ่) — ตรวจแล้ว 20260912 ไม่พบปัญหา (ทุก path ตรงตัวพิมพ์กับชื่อไฟล์จริงอยู่แล้ว)
+6. ตัดสินใจเรื่อง `https://syncsmart-98d1e.web.app` เดิม — จะปิดทิ้ง, ปล่อยขนานกันไว้ชั่วคราวระหว่าง transition, หรือทำ redirect ไปโดเมนใหม่ — ถ้าจะตัด ต้องอัปเดตลิงก์ที่อ้างถึง URL เดิมด้วย (เช่นใน README ของ root ที่เพิ่งเพิ่ม live site URL ไป)
+
+ยังไม่ได้ย้ายจริงในรอบนี้ — รอคำสั่งเจาะจงถ้าจะดำเนินการ
+
 ## ขั้นต่อไป (ยังไม่ทำในรอบนี้ — รอคำสั่งเจาะจง)
 
 1. ทำหน้ารายละเอียดคำขอ (`requisition-detail.html`) เชื่อม `lineItems` subcollection จริง แทนลิงก์ที่ปิดใช้งานไว้ใน `requisition-list.html`
