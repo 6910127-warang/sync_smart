@@ -233,7 +233,7 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
    - **Deploy command:** `npx wrangler deploy` (ค่า default ของ Cloudflare เอง ไม่ต้องแก้)
    - **Framework preset:** None
 4. Deploy ครั้งแรก — ได้ URL `<ชื่อโปรเจกต์>.<account-subdomain>.workers.dev` พร้อม HTTPS อัตโนมัติทันที
-5. (ถ้าใช้โดเมนตัวเอง) ผูก custom domain ในโปรเจกต์ → **Custom domains** — ถ้าโดเมนอยู่ที่ Cloudflare DNS อยู่แล้วจะเชื่อมอัตโนมัติ ถ้า DNS อยู่ที่อื่นต้องเพิ่ม CNAME ชี้ไปที่ `<ชื่อโปรเจกต์>.<account-subdomain>.workers.dev` เอง
+5. ~~(ถ้าใช้โดเมนตัวเอง) ผูก custom domain ในโปรเจกต์ → **Custom domains**~~ — **ผู้ใช้ตัดสินใจแล้ว (20260914): ไม่ผูก custom domain** ใช้ `sync-smart.thiphbuymepharmacy.workers.dev` เป็น URL หลักต่อไป
 6. เพิ่มทั้ง `<ชื่อโปรเจกต์>.<account-subdomain>.workers.dev` และโดเมนตัวเอง (ถ้ามี) เข้า Firebase Console → Authentication → Settings → Authorized domains — ถ้าลืมขั้นนี้ login จะพังทันทีด้วย error `auth/unauthorized-domain`
 
 **หมายเหตุสำคัญ — ปุ่ม "Retry build" ไม่ดึง Build command ที่เพิ่งแก้ไปใช้ (พบจริง 20260914):** หลังแก้ Build command ให้ถูกแล้ว (ข้อ 3 ด้านบน) กด **Retry build** จาก build entry เก่าในหน้า build history **ไม่ทำให้ค่าใหม่มีผล** เพราะ retry รันซ้ำด้วย config ที่บันทึกไว้ ณ ตอนสร้าง build entry นั้น (ยืนยันจากการเปิด `/seed.html` ซ้ำหลัง retry แล้วยังเข้าได้เหมือนเดิม) — ต้อง trigger **deploy รอบใหม่จริงๆ** ถึงจะดึง Build command ล่าสุดไปใช้ (เช่น push commit ใหม่ขึ้น `main`, หรือใช้ปุ่ม deploy จากหน้า Deployments แทนปุ่ม Retry ของ build เก่า)
@@ -242,7 +242,7 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 9. อัปเดตครั้งถัดไป: แค่ `git push` ขึ้น `main` ตามปกติ — Cloudflare deploy ให้อัตโนมัติทุกครั้ง (ยืนยันแล้ว 20260914 ว่า auto-deploy จาก push ทำงานจริง ไม่ต้องอัปโหลดมือหรือใช้ CLI แยก)
 10. ตัดสินใจเรื่อง `https://syncsmart-98d1e.web.app` เดิม — จะปิดทิ้ง, ปล่อยขนานกันไว้ชั่วคราวระหว่าง transition, หรือทำ redirect ไปโดเมนใหม่ — ถ้าจะตัด ต้องอัปเดตลิงก์ที่อ้างถึง URL เดิมด้วย (เช่นใน README ของ root ที่เพิ่งเพิ่ม live site URL ไป)
 
-**สถานะปัจจุบัน (20260914):** ข้อ 1-4, 6-9 เสร็จและยืนยันครบแล้ว รวมถึง login จริงด้วยบัญชีทดสอบผ่านได้ปกติ — **ถือว่าย้ายไป Cloudflare เสร็จสมบูรณ์** เหลือแค่ข้อ 5 (custom domain) และข้อ 10 (ตัดสินใจเรื่อง URL `web.app` เดิมของ Firebase Hosting) ที่ยังเป็นทางเลือกเสริม รอผู้ใช้ตัดสินใจว่าจะทำต่อหรือไม่
+**สถานะปัจจุบัน (20260914):** ข้อ 1-4, 6-9 เสร็จและยืนยันครบแล้ว รวมถึง login จริงด้วยบัญชีทดสอบผ่านได้ปกติ, ข้อ 5 ตัดสินใจแล้วว่าไม่ทำ (ไม่ผูก custom domain) — **ถือว่าย้ายไป Cloudflare เสร็จสมบูรณ์** เหลือแค่ข้อ 10 (ตัดสินใจเรื่อง URL `web.app` เดิมของ Firebase Hosting — ปิดทิ้ง/ปล่อยขนานกันไว้/redirect) ที่ยังรอผู้ใช้ตัดสินใจ
 
 ## ขั้นต่อไป (ยังไม่ทำในรอบนี้ — รอคำสั่งเจาะจง)
 
