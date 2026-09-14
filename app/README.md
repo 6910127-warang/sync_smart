@@ -240,9 +240,9 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 7. `firestore.rules` ไม่ต้องแก้อะไร — กรองจาก auth token (`role`/`unitId`) ไม่ได้กรองจาก origin ของ hosting
 8. ตรวจ case-sensitivity ของทุก path ที่อ้างอิง (`src`/`href`/`import`) เทียบกับชื่อไฟล์จริง — ตรวจแล้ว 20260912 ไม่พบปัญหา (ทุก path ตรงตัวพิมพ์กับชื่อไฟล์จริงอยู่แล้ว ใช้ได้กับทุก static host ที่ case-sensitive)
 9. อัปเดตครั้งถัดไป: แค่ `git push` ขึ้น `main` ตามปกติ — Cloudflare deploy ให้อัตโนมัติทุกครั้ง (ยืนยันแล้ว 20260914 ว่า auto-deploy จาก push ทำงานจริง ไม่ต้องอัปโหลดมือหรือใช้ CLI แยก)
-10. ตัดสินใจเรื่อง `https://syncsmart-98d1e.web.app` เดิม — จะปิดทิ้ง, ปล่อยขนานกันไว้ชั่วคราวระหว่าง transition, หรือทำ redirect ไปโดเมนใหม่ — ถ้าจะตัด ต้องอัปเดตลิงก์ที่อ้างถึง URL เดิมด้วย (เช่นใน README ของ root ที่เพิ่งเพิ่ม live site URL ไป)
+10. ~~ตัดสินใจเรื่อง `https://syncsmart-98d1e.web.app` เดิม~~ — **ผู้ใช้ตัดสินใจแล้ว (20260914): ปล่อยขนานกันไว้** ทั้งสอง URL ใช้งานได้พร้อมกัน (`https://syncsmart-98d1e.web.app` ของ Firebase Hosting เดิม + `https://sync-smart.thiphbuymepharmacy.workers.dev` ของ Cloudflare ใหม่) — ทั้งคู่ชี้ไป Firestore/Auth เดียวกัน ไม่ต้องอัปเดตลิงก์ใดๆ เพิ่ม
 
-**สถานะปัจจุบัน (20260914):** ข้อ 1-4, 6-9 เสร็จและยืนยันครบแล้ว รวมถึง login จริงด้วยบัญชีทดสอบผ่านได้ปกติ, ข้อ 5 ตัดสินใจแล้วว่าไม่ทำ (ไม่ผูก custom domain) — **ถือว่าย้ายไป Cloudflare เสร็จสมบูรณ์** เหลือแค่ข้อ 10 (ตัดสินใจเรื่อง URL `web.app` เดิมของ Firebase Hosting — ปิดทิ้ง/ปล่อยขนานกันไว้/redirect) ที่ยังรอผู้ใช้ตัดสินใจ
+**สถานะปัจจุบัน (20260914):** ครบทุกข้อแล้ว — deploy จริง, build command, authorized domain, login จริง ยืนยันหมด, ไม่ผูก custom domain (ข้อ 5), และปล่อย URL เดิมของ Firebase Hosting ไว้ขนานกัน (ข้อ 10) — **ถือว่าย้ายไป Cloudflare เสร็จสมบูรณ์ ไม่มีงานค้าง**
 
 ## ขั้นต่อไป (ยังไม่ทำในรอบนี้ — รอคำสั่งเจาะจง)
 
