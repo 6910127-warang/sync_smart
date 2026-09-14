@@ -221,16 +221,24 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 
 สถาปัตยกรรมเป็น static file ล้วน (`app/` ไม่มี build step) จึงย้ายไปโฮสต์ static ที่ไหนก็ได้โดยไม่กระทบ backend — Firebase Hosting (`https://syncsmart-98d1e.web.app`) ทำหน้าที่แค่เก็บไฟล์ ส่วน **Firestore + Firebase Authentication ยังอยู่ที่ Firebase เหมือนเดิมไม่ว่าจะย้าย hosting ไปที่ไหน**
 
-ตัดสินใจใช้ **Cloudflare Pages แบบ Direct Upload** แทน Hostinger (เหตุผล: ฟรี, SSL อัตโนมัติ, ไม่ต้องมี cPanel/File Manager, เหมาะกับโปรเจกต์ static ล้วนแบบนี้อยู่แล้ว) ขั้นตอน:
+ตัดสินใจใช้ **Cloudflare แบบเชื่อม GitHub repo โดยตรง** (แทน Direct Upload ที่วางแผนไว้ทีแรก 20260914 ช่วงเช้า — เปลี่ยนมาใช้ Git แทนช่วงบ่ายวันเดียวกัน เพื่อให้ deploy อัตโนมัติทุกครั้งที่ push ขึ้น `main` โดยไม่ต้องอัปโหลด zip มือทุกรอบ) ขั้นตอน:
 
 1. สมัคร/ล็อกอิน [dash.cloudflare.com](https://dash.cloudflare.com) (ฟรี)
-2. **Workers & Pages → Create application → Pages → Upload assets** — ตั้งชื่อโปรเจกต์ แล้วอัปโหลดเนื้อหาทั้งหมดในโฟลเดอร์ `app/` (ยกเว้น `seed.html` — dev tool เท่านั้น เหมือนที่ exclude ไว้ใน [`../firebase.json`](../firebase.json) ปัจจุบัน) แบบ zip/folder ผ่าน Direct Upload — ไม่มี build/compile step, ได้ URL `<ชื่อโปรเจกต์>.pages.dev` พร้อม HTTPS อัตโนมัติทันที
-3. (ถ้าใช้โดเมนตัวเอง) ผูก custom domain ใน Pages project → **Custom domains** — ถ้าโดเมนอยู่ที่ Cloudflare DNS อยู่แล้วจะเชื่อมอัตโนมัติ ถ้า DNS อยู่ที่อื่นต้องเพิ่ม CNAME ชี้ไปที่ `<ชื่อโปรเจกต์>.pages.dev` เอง
-4. เพิ่มทั้ง `<ชื่อโปรเจกต์>.pages.dev` และโดเมนตัวเอง (ถ้ามี) เข้า Firebase Console → Authentication → Settings → Authorized domains — ถ้าลืมขั้นนี้ login จะพังทันทีด้วย error `auth/unauthorized-domain`
-5. `firestore.rules` ไม่ต้องแก้อะไร — กรองจาก auth token (`role`/`unitId`) ไม่ได้กรองจาก origin ของ hosting
-6. ตรวจ case-sensitivity ของทุก path ที่อ้างอิง (`src`/`href`/`import`) เทียบกับชื่อไฟล์จริงก่อนอัปโหลด — ตรวจแล้ว 20260912 ไม่พบปัญหา (ทุก path ตรงตัวพิมพ์กับชื่อไฟล์จริงอยู่แล้ว ใช้ได้กับทุก static host ที่ case-sensitive)
-7. อัปเดตครั้งถัดไป: กลับเข้า Pages project → **Create deployment** → อัปโหลด zip ใหม่ทับได้เลย ไม่ต้องใช้ CLI
-8. ตัดสินใจเรื่อง `https://syncsmart-98d1e.web.app` เดิม — จะปิดทิ้ง, ปล่อยขนานกันไว้ชั่วคราวระหว่าง transition, หรือทำ redirect ไปโดเมนใหม่ — ถ้าจะตัด ต้องอัปเดตลิงก์ที่อ้างถึง URL เดิมด้วย (เช่นใน README ของ root ที่เพิ่งเพิ่ม live site URL ไป)
+2. **Workers & Pages → Create application → Connect GitHub** → เลือก repo `6910127-warang/sync_smart`, branch `main` — **หมายเหตุ (พบจริง 20260914):** flow "Create an app" ปัจจุบันของ Cloudflare รวม Workers/Pages เป็นหน้าเดียวกันแล้ว การเชื่อม GitHub แบบนี้จะสร้างเป็น **Workers project ที่มี static assets** (deploy ด้วย `npx wrangler deploy` เบื้องหลัง) ไม่ใช่ classic Pages project อีกต่อไป — URL ที่ได้จึงเป็น `<ชื่อโปรเจกต์>.<account-subdomain>.workers.dev` ไม่ใช่ `*.pages.dev`
+3. ตั้งค่า Build settings ให้ตรงนี้เท่านั้น (สำคัญ เพราะ repo นี้เป็น monorepo มี `01-requirements/`/`prototype/`/`DESIGN.md` ปนอยู่กับ `app/`):
+   - **Root directory:** `/` (root ของทั้ง repo — Cloudflare รุ่นนี้ใช้ค่านี้เป็น context ของ Build command เท่านั้น ส่วน path ของ static assets ที่จะ serve จริง (`app`) ตั้งแยกเป็นอีกช่องหนึ่งตอน setup เช่น "Path"/assets directory)
+   - **Build command:** `rm -f app/seed.html` **(ต้องใส่ path เต็มจาก root ของ repo เพราะ Root directory คือ `/` ไม่ใช่ `app` — พิมพ์ผิดเป็น `rm -f seed.html` เฉยๆ ตอนแรก ทำให้หาไฟล์ไม่เจอและไม่ error เพราะมี `-f` แต่ `seed.html` ก็ยังหลุดขึ้น deploy จริง เจอบั๊กนี้จากการทดสอบเปิด `/seed.html` บนเว็บจริงแล้วยังเข้าได้ 20260914)**
+   - **Deploy command:** `npx wrangler deploy` (ค่า default ของ Cloudflare เอง ไม่ต้องแก้)
+   - **Framework preset:** None
+4. Deploy ครั้งแรก — ได้ URL `<ชื่อโปรเจกต์>.<account-subdomain>.workers.dev` พร้อม HTTPS อัตโนมัติทันที
+5. (ถ้าใช้โดเมนตัวเอง) ผูก custom domain ในโปรเจกต์ → **Custom domains** — ถ้าโดเมนอยู่ที่ Cloudflare DNS อยู่แล้วจะเชื่อมอัตโนมัติ ถ้า DNS อยู่ที่อื่นต้องเพิ่ม CNAME ชี้ไปที่ `<ชื่อโปรเจกต์>.<account-subdomain>.workers.dev` เอง
+6. เพิ่มทั้ง `<ชื่อโปรเจกต์>.<account-subdomain>.workers.dev` และโดเมนตัวเอง (ถ้ามี) เข้า Firebase Console → Authentication → Settings → Authorized domains — ถ้าลืมขั้นนี้ login จะพังทันทีด้วย error `auth/unauthorized-domain`
+
+**หมายเหตุสำคัญ — ปุ่ม "Retry build" ไม่ดึง Build command ที่เพิ่งแก้ไปใช้ (พบจริง 20260914):** หลังแก้ Build command ให้ถูกแล้ว (ข้อ 3 ด้านบน) กด **Retry build** จาก build entry เก่าในหน้า build history **ไม่ทำให้ค่าใหม่มีผล** เพราะ retry รันซ้ำด้วย config ที่บันทึกไว้ ณ ตอนสร้าง build entry นั้น (ยืนยันจากการเปิด `/seed.html` ซ้ำหลัง retry แล้วยังเข้าได้เหมือนเดิม) — ต้อง trigger **deploy รอบใหม่จริงๆ** ถึงจะดึง Build command ล่าสุดไปใช้ (เช่น push commit ใหม่ขึ้น `main`, หรือใช้ปุ่ม deploy จากหน้า Deployments แทนปุ่ม Retry ของ build เก่า)
+7. `firestore.rules` ไม่ต้องแก้อะไร — กรองจาก auth token (`role`/`unitId`) ไม่ได้กรองจาก origin ของ hosting
+8. ตรวจ case-sensitivity ของทุก path ที่อ้างอิง (`src`/`href`/`import`) เทียบกับชื่อไฟล์จริง — ตรวจแล้ว 20260912 ไม่พบปัญหา (ทุก path ตรงตัวพิมพ์กับชื่อไฟล์จริงอยู่แล้ว ใช้ได้กับทุก static host ที่ case-sensitive)
+9. อัปเดตครั้งถัดไป: แค่ `git push` ขึ้น `main` ตามปกติ — Cloudflare deploy ให้อัตโนมัติทุกครั้ง ไม่ต้องอัปโหลดมือหรือใช้ CLI แยก
+10. ตัดสินใจเรื่อง `https://syncsmart-98d1e.web.app` เดิม — จะปิดทิ้ง, ปล่อยขนานกันไว้ชั่วคราวระหว่าง transition, หรือทำ redirect ไปโดเมนใหม่ — ถ้าจะตัด ต้องอัปเดตลิงก์ที่อ้างถึง URL เดิมด้วย (เช่นใน README ของ root ที่เพิ่งเพิ่ม live site URL ไป)
 
 ยังไม่ได้ย้ายจริงในรอบนี้ — รอคำสั่งเจาะจงถ้าจะดำเนินการ
 
