@@ -217,7 +217,9 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 - ยืนยันด้วยการทดสอบจริง — login เป็น staff-hph หน่วย A แล้วลองอ่าน/เขียนคำขอของหน่วย B ถูกปฏิเสธจริง (`permission-denied`), ลอง approve คำขอเดิม 2 ครั้งด้วย recordVersion เก่าถูกปฏิเสธจริง, ไม่ login เข้าหน้าจอตรงๆ ถูก redirect กลับ `login.html` — ผ่านทั้งหมด
 - สร้างบัญชี `role: "admin"` ไว้แล้ว 1 บัญชีผ่าน Firebase Console (Authentication → Add user + Firestore Database → doc `users/{uid}`) ก่อน publish ตามที่ระบุไว้
 
-## Hosting ทางเลือก — ย้ายไป Cloudflare Pages (เพิ่ม 20260912 เป็น Hostinger, เปลี่ยนมาเป็น Cloudflare Pages 20260914 ตามที่ผู้ใช้ตัดสินใจ — เป็นแนวทางเตรียมไว้เท่านั้น ยังไม่ได้ย้ายจริง)
+## Hosting — ย้ายไป Cloudflare (เพิ่ม 20260912 เป็น Hostinger, เปลี่ยนมาเป็น Cloudflare 20260914 ตามที่ผู้ใช้ตัดสินใจ — deploy จริงขึ้น Cloudflare สำเร็จแล้ว 20260914)
+
+**Live URL ปัจจุบัน (build settings ยืนยันถูกต้องแล้ว):** `https://sync-smart.thiphbuymepharmacy.workers.dev` — ยืนยันแล้วว่า `/seed.html` ตอบ `404` จริง (ไม่หลุดขึ้น deploy), `/login` โหลดสไตล์/สคริปต์ครบ ไม่มี error ใน console — **ยังไม่ได้ทดสอบ login เต็มรูปแบบและยังไม่ได้เพิ่ม domain นี้เข้า Firebase Authentication authorized domains (ดูข้อ 6 ด้านล่าง — ต้องทำก่อนถึงจะ login ผ่านโดเมนนี้ได้จริง)**
 
 สถาปัตยกรรมเป็น static file ล้วน (`app/` ไม่มี build step) จึงย้ายไปโฮสต์ static ที่ไหนก็ได้โดยไม่กระทบ backend — Firebase Hosting (`https://syncsmart-98d1e.web.app`) ทำหน้าที่แค่เก็บไฟล์ ส่วน **Firestore + Firebase Authentication ยังอยู่ที่ Firebase เหมือนเดิมไม่ว่าจะย้าย hosting ไปที่ไหน**
 
@@ -227,7 +229,7 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 2. **Workers & Pages → Create application → Connect GitHub** → เลือก repo `6910127-warang/sync_smart`, branch `main` — **หมายเหตุ (พบจริง 20260914):** flow "Create an app" ปัจจุบันของ Cloudflare รวม Workers/Pages เป็นหน้าเดียวกันแล้ว การเชื่อม GitHub แบบนี้จะสร้างเป็น **Workers project ที่มี static assets** (deploy ด้วย `npx wrangler deploy` เบื้องหลัง) ไม่ใช่ classic Pages project อีกต่อไป — URL ที่ได้จึงเป็น `<ชื่อโปรเจกต์>.<account-subdomain>.workers.dev` ไม่ใช่ `*.pages.dev`
 3. ตั้งค่า Build settings ให้ตรงนี้เท่านั้น (สำคัญ เพราะ repo นี้เป็น monorepo มี `01-requirements/`/`prototype/`/`DESIGN.md` ปนอยู่กับ `app/`):
    - **Root directory:** `/app` — Cloudflare ใช้ค่านี้เป็นทั้ง working directory ของ Build/Deploy command และ path ของ static assets ที่จะ serve (ค่าเดียวกันทำทั้งสองหน้าที่)
-   - **Build command:** `rm -f seed.html` **(ไม่ใส่ `app/` นำหน้า เพราะ Root directory ตั้งเป็น `/app` แล้ว working directory ของคำสั่งจึงอยู่ใน `app/` อยู่แล้ว — ตอนแรกเข้าใจผิดว่า Root directory เป็น `/` เพราะดูจากหน้ารายละเอียดของ build เก่าที่แสดงค่านั้น แล้วแก้เป็น `rm -f app/seed.html` ไป ทำให้หาไฟล์ไม่เจอ (มี `-f` เลยไม่ error แต่ `seed.html` ก็ยังหลุดขึ้น deploy จริงอยู่ดี) จนไปเช็คหน้า Settings ของโปรเจกต์ตรงๆ ถึงเห็นว่า Root directory จริงคือ `/app` แก้กลับมาเป็น `rm -f seed.html` เฉยๆ ถึงทำงานถูก)**
+   - **Build command:** `rm -f seed.html` **(ไม่ใส่ `app/` นำหน้า เพราะ Root directory ตั้งเป็น `/app` แล้ว working directory ของคำสั่งจึงอยู่ใน `app/` อยู่แล้ว — ตอนแรกเข้าใจผิดว่า Root directory เป็น `/` เพราะดูจากหน้ารายละเอียดของ build เก่าที่แสดงค่านั้น แล้วแก้เป็น `rm -f app/seed.html` ไป ทำให้หาไฟล์ไม่เจอ (มี `-f` เลยไม่ error แต่ `seed.html` ก็ยังหลุดขึ้น deploy จริงอยู่ดี) จนไปเช็คหน้า Settings ของโปรเจกต์ตรงๆ ถึงเห็นว่า Root directory จริงคือ `/app` แก้กลับมาเป็น `rm -f seed.html` เฉยๆ ถึงทำงานถูก — **ยืนยันแล้ว 20260914** จาก build log จริง (`#02a520bd`, commit `45841eb`) ว่า build command รันสำเร็จและ `/seed.html` ตอบ 404 บนเว็บจริงหลัง deploy รอบนี้)**
    - **Deploy command:** `npx wrangler deploy` (ค่า default ของ Cloudflare เอง ไม่ต้องแก้)
    - **Framework preset:** None
 4. Deploy ครั้งแรก — ได้ URL `<ชื่อโปรเจกต์>.<account-subdomain>.workers.dev` พร้อม HTTPS อัตโนมัติทันที
@@ -237,10 +239,10 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 **หมายเหตุสำคัญ — ปุ่ม "Retry build" ไม่ดึง Build command ที่เพิ่งแก้ไปใช้ (พบจริง 20260914):** หลังแก้ Build command ให้ถูกแล้ว (ข้อ 3 ด้านบน) กด **Retry build** จาก build entry เก่าในหน้า build history **ไม่ทำให้ค่าใหม่มีผล** เพราะ retry รันซ้ำด้วย config ที่บันทึกไว้ ณ ตอนสร้าง build entry นั้น (ยืนยันจากการเปิด `/seed.html` ซ้ำหลัง retry แล้วยังเข้าได้เหมือนเดิม) — ต้อง trigger **deploy รอบใหม่จริงๆ** ถึงจะดึง Build command ล่าสุดไปใช้ (เช่น push commit ใหม่ขึ้น `main`, หรือใช้ปุ่ม deploy จากหน้า Deployments แทนปุ่ม Retry ของ build เก่า)
 7. `firestore.rules` ไม่ต้องแก้อะไร — กรองจาก auth token (`role`/`unitId`) ไม่ได้กรองจาก origin ของ hosting
 8. ตรวจ case-sensitivity ของทุก path ที่อ้างอิง (`src`/`href`/`import`) เทียบกับชื่อไฟล์จริง — ตรวจแล้ว 20260912 ไม่พบปัญหา (ทุก path ตรงตัวพิมพ์กับชื่อไฟล์จริงอยู่แล้ว ใช้ได้กับทุก static host ที่ case-sensitive)
-9. อัปเดตครั้งถัดไป: แค่ `git push` ขึ้น `main` ตามปกติ — Cloudflare deploy ให้อัตโนมัติทุกครั้ง ไม่ต้องอัปโหลดมือหรือใช้ CLI แยก
+9. อัปเดตครั้งถัดไป: แค่ `git push` ขึ้น `main` ตามปกติ — Cloudflare deploy ให้อัตโนมัติทุกครั้ง (ยืนยันแล้ว 20260914 ว่า auto-deploy จาก push ทำงานจริง ไม่ต้องอัปโหลดมือหรือใช้ CLI แยก)
 10. ตัดสินใจเรื่อง `https://syncsmart-98d1e.web.app` เดิม — จะปิดทิ้ง, ปล่อยขนานกันไว้ชั่วคราวระหว่าง transition, หรือทำ redirect ไปโดเมนใหม่ — ถ้าจะตัด ต้องอัปเดตลิงก์ที่อ้างถึง URL เดิมด้วย (เช่นใน README ของ root ที่เพิ่งเพิ่ม live site URL ไป)
 
-ยังไม่ได้ย้ายจริงในรอบนี้ — รอคำสั่งเจาะจงถ้าจะดำเนินการ
+**สถานะปัจจุบัน (20260914):** ข้อ 1-3, 8-9 เสร็จและยืนยันแล้ว (deploy จริง ทำงานถูกต้อง, auto-deploy จาก push ใช้ได้) — **ยังไม่ได้ทำข้อ 6 (เพิ่ม authorized domain ใน Firebase Auth) และยังไม่ได้ทดสอบ login เต็มรูปแบบบนโดเมนนี้** ต้องทำก่อนถึงจะถือว่าย้ายเสร็จสมบูรณ์ ข้อ 5 (custom domain) และข้อ 10 (ตัดสินใจเรื่อง URL เดิม) ยังเป็นทางเลือก รอผู้ใช้ตัดสินใจ
 
 ## ขั้นต่อไป (ยังไม่ทำในรอบนี้ — รอคำสั่งเจาะจง)
 
