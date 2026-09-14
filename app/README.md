@@ -217,9 +217,9 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 - ยืนยันด้วยการทดสอบจริง — login เป็น staff-hph หน่วย A แล้วลองอ่าน/เขียนคำขอของหน่วย B ถูกปฏิเสธจริง (`permission-denied`), ลอง approve คำขอเดิม 2 ครั้งด้วย recordVersion เก่าถูกปฏิเสธจริง, ไม่ login เข้าหน้าจอตรงๆ ถูก redirect กลับ `login.html` — ผ่านทั้งหมด
 - สร้างบัญชี `role: "admin"` ไว้แล้ว 1 บัญชีผ่าน Firebase Console (Authentication → Add user + Firestore Database → doc `users/{uid}`) ก่อน publish ตามที่ระบุไว้
 
-## Hosting — ย้ายไป Cloudflare (เพิ่ม 20260912 เป็น Hostinger, เปลี่ยนมาเป็น Cloudflare 20260914 ตามที่ผู้ใช้ตัดสินใจ — deploy จริงขึ้น Cloudflare สำเร็จแล้ว 20260914)
+## Hosting — ย้ายไป Cloudflare (เพิ่ม 20260912 เป็น Hostinger, เปลี่ยนมาเป็น Cloudflare 20260914 ตามที่ผู้ใช้ตัดสินใจ — **ย้ายเสร็จสมบูรณ์และยืนยันแล้ว 20260914** รวม login จริงด้วยบัญชีทดสอบ)
 
-**Live URL ปัจจุบัน (build settings ยืนยันถูกต้องแล้ว):** `https://sync-smart.thiphbuymepharmacy.workers.dev` — ยืนยันแล้วว่า `/seed.html` ตอบ `404` จริง (ไม่หลุดขึ้น deploy), `/login` โหลดสไตล์/สคริปต์ครบ ไม่มี error ใน console — **ยังไม่ได้ทดสอบ login เต็มรูปแบบและยังไม่ได้เพิ่ม domain นี้เข้า Firebase Authentication authorized domains (ดูข้อ 6 ด้านล่าง — ต้องทำก่อนถึงจะ login ผ่านโดเมนนี้ได้จริง)**
+**Live URL ปัจจุบัน (ยืนยันใช้งานได้จริงครบทุกจุด):** `https://sync-smart.thiphbuymepharmacy.workers.dev` — `/seed.html` ตอบ `404` จริง (ไม่หลุดขึ้น deploy), `/login` โหลดสไตล์/สคริปต์ครบไม่มี error, เพิ่ม authorized domain ใน Firebase Auth แล้ว, และ **login ด้วยบัญชีทดสอบจริงผ่านได้ปกติ** (ผู้ใช้ทดสอบเอง 20260914)
 
 สถาปัตยกรรมเป็น static file ล้วน (`app/` ไม่มี build step) จึงย้ายไปโฮสต์ static ที่ไหนก็ได้โดยไม่กระทบ backend — Firebase Hosting (`https://syncsmart-98d1e.web.app`) ทำหน้าที่แค่เก็บไฟล์ ส่วน **Firestore + Firebase Authentication ยังอยู่ที่ Firebase เหมือนเดิมไม่ว่าจะย้าย hosting ไปที่ไหน**
 
@@ -242,7 +242,7 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 9. อัปเดตครั้งถัดไป: แค่ `git push` ขึ้น `main` ตามปกติ — Cloudflare deploy ให้อัตโนมัติทุกครั้ง (ยืนยันแล้ว 20260914 ว่า auto-deploy จาก push ทำงานจริง ไม่ต้องอัปโหลดมือหรือใช้ CLI แยก)
 10. ตัดสินใจเรื่อง `https://syncsmart-98d1e.web.app` เดิม — จะปิดทิ้ง, ปล่อยขนานกันไว้ชั่วคราวระหว่าง transition, หรือทำ redirect ไปโดเมนใหม่ — ถ้าจะตัด ต้องอัปเดตลิงก์ที่อ้างถึง URL เดิมด้วย (เช่นใน README ของ root ที่เพิ่งเพิ่ม live site URL ไป)
 
-**สถานะปัจจุบัน (20260914):** ข้อ 1-3, 6, 8-9 เสร็จและยืนยันแล้ว — deploy จริงทำงานถูกต้อง, auto-deploy จาก push ใช้ได้, และเพิ่ม `sync-smart.thiphbuymepharmacy.workers.dev` เข้า Firebase Auth authorized domains แล้ว (ยืนยัน toast "added" + ขึ้นในลิสต์เป็น type Custom) — **ยังไม่ได้ทดสอบ login ด้วยบัญชีจริงบนโดเมนนี้ (ต้องกรอกอีเมล/รหัสผ่านเอง ให้ผู้ใช้ทดสอบเอง)** ข้อ 5 (custom domain) และข้อ 10 (ตัดสินใจเรื่อง URL เดิม) ยังเป็นทางเลือก รอผู้ใช้ตัดสินใจ
+**สถานะปัจจุบัน (20260914):** ข้อ 1-4, 6-9 เสร็จและยืนยันครบแล้ว รวมถึง login จริงด้วยบัญชีทดสอบผ่านได้ปกติ — **ถือว่าย้ายไป Cloudflare เสร็จสมบูรณ์** เหลือแค่ข้อ 5 (custom domain) และข้อ 10 (ตัดสินใจเรื่อง URL `web.app` เดิมของ Firebase Hosting) ที่ยังเป็นทางเลือกเสริม รอผู้ใช้ตัดสินใจว่าจะทำต่อหรือไม่
 
 ## ขั้นต่อไป (ยังไม่ทำในรอบนี้ — รอคำสั่งเจาะจง)
 
