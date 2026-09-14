@@ -1,6 +1,6 @@
 # SmartSync
 
-**เว็บออนไลน์:** [https://syncsmart-98d1e.web.app](https://syncsmart-98d1e.web.app)
+**เว็บออนไลน์:** [https://sync-smart.thiphbuymepharmacy.workers.dev](https://sync-smart.thiphbuymepharmacy.workers.dev)
 
 ระบบสนับสนุนการเบิกยา SmartSync เครือข่าย รพ.สต. อำเภอเมือง จังหวัดเชียงราย
 
