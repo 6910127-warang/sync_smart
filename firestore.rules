@@ -3,7 +3,7 @@ rules_version = '2';
 // SmartSync — Firestore Security Rules กรองตาม role/unitId (อัปเดต 20260908, แทนกฎเดิม "แค่ต้อง login")
 // อ้างอิงโครงสร้าง collection/field ทั้งหมดจาก app/README.md — แก้ไฟล์นั้นก่อนเสมอถ้า schema เปลี่ยน แล้วมาปรับที่นี่ตาม
 //
-// ขอบเขต: ครอบคลุมเฉพาะ collection/การกระทำที่มีหน้าจอจริงใช้งานอยู่ตอนนี้ (BL-001/002/004/005/024, ระดับอนุมัติ 1 เท่านั้น)
+// ขอบเขต: ครอบคลุมเฉพาะ collection/การกระทำที่มีหน้าจอจริงใช้งานอยู่ตอนนี้ (BL-001/002/004/005/024/047/048, ระดับอนุมัติ 1 เท่านั้น)
 // ส่วนที่ยังไม่มีหน้าจอ (อนุมัติระดับ 2, ส่งออก Excel, audit-trail, ยืนยันรับยา, Epic 2 พยากรณ์สต็อก) จงใจไม่เปิดสิทธิ์เขียนไว้ล่วงหน้า
 // — ต้องขยายกฎที่นี่พร้อมกับตอนสร้างหน้าจอนั้นจริง (ดู app/README.md หัวข้อ "ขั้นต่อไป")
 
@@ -177,6 +177,21 @@ service cloud.firestore {
       allow read: if isAdmin() || isExecutive() || isPharmacist()
         || (isStaffHph() && resource.data.receivingUnitId == myUnitId());
       allow write: if false;
+    }
+
+    // ---------- aiAssistantUsageLogs/{logId} — implementation-only, บันทึกการใช้งานผู้ช่วย AI (BL-048/FR-8.7-FR-8.11) ----------
+    // อ่านได้เฉพาะ admin เท่านั้น (FR-8.9) — เขียนได้เฉพาะเภสัชกรผู้เรียกใช้เอง (callerId ต้องตรงกับ uid ที่ login อยู่)
+    // เป็น audit log ที่แก้ไข/ลบไม่ได้เลยแม้แต่ admin (immutable ตาม FR-8.9) และไม่มี TTL/retention policy (เก็บถาวรตาม FR-8.10)
+    match /aiAssistantUsageLogs/{logId} {
+      allow get, list: if isAdmin();
+      allow create: if isPharmacist()
+        && request.resource.data.callerId == request.auth.uid
+        && request.resource.data.callerRole == 'pharmacist'
+        && request.resource.data.capability in ['deviation-summary', 'draft-reason']
+        && request.resource.data.requisitionId is string
+        && request.resource.data.inputPayload is string
+        && request.resource.data.outputText is string;
+      allow update, delete: if false;
     }
 
     // ---------- collection อื่นที่ยังไม่ได้สร้าง/ยังไม่มีหน้าจอใช้งาน ----------

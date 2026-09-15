@@ -9,6 +9,7 @@
 - **หน้าพิจารณาคำขอ/อนุมัติ-ปฏิเสธระดับ 1** (`pharmacist/approval-review-level1.html`, เพิ่ม 20260907) — อ้างอิง FT-002, BL-004, BL-036 (เฉพาะขอบเขตระดับ 1 — ระดับ 2/ส่งออก/audit-trail ยังไม่ทำ)
 - **Firebase Authentication (email/password) จริง** ทั้งสอง role ข้างต้น (เพิ่ม 20260907, BL-024)
 - **หน้า Login กลางจุดเดียว** (`login.html`, เพิ่ม 20260908) — login แล้ว redirect ไปหน้าแรกของ role อัตโนมัติ แทนฟอร์ม login ที่เคยฝังซ้ำอยู่ใน 4 หน้าจอข้างต้น
+- **ผู้ช่วย AI สำหรับเภสัชกรผู้อนุมัติระดับ 1** (`pharmacist/approval-review-level1.html`/`approval-queue-level1.html`, `lib/ai-assistant.js`, `_worker.js`, เพิ่ม 20260915) — อ้างอิง FT-036/BL-047 พร้อมบันทึกการใช้งานลง Firestore (`aiAssistantUsageLogs`, BL-048)
 
 ทั้งหมดอ้างอิง [`../01-requirements/backlog.md`](../01-requirements/backlog.md)
 
@@ -153,6 +154,22 @@ Document ID: `{unitId}_{drugItemId}_{referenceMonth}` (deterministic — เข�
 | `confirmedBy` (ผู้ยืนยันรับ) | string (ref → `users`, uid) | ใช่ | |
 | `confirmedAt` (วันที่-เวลาที่ยืนยันรับ) | Timestamp | ใช่ | |
 
+### `aiAssistantUsageLogs/{logId}` — บันทึกการใช้งานผู้ช่วย AI (เพิ่ม 20260915, implementation-only, BL-048/FR-8.7-FR-8.11)
+
+> ไม่ใช่ entity เชิงแนวคิดใน `06-data-model.md` (เทียบเคียง `counters` ด้านบน) — เป็น audit log แคบๆ เฉพาะการเรียกใช้ผู้ช่วย AI ของ FT-036/BL-047 เท่านั้น **ไม่ใช่** Business Audit Trail เต็มรูปแบบ (BL-008/`businessAuditLog` ที่ยังไม่ถูกสร้าง) เขียนจริงโดย `lib/ai-assistant.js` (`logAiAssistantUsage`) ทันทีหลังได้รับผลลัพธ์สำเร็จจาก `/api/ai-assist` — เขียนจากฝั่ง **client** ตาม FR-8.11 ไม่ใช่ฝั่ง Worker (trade-off ความน่าเชื่อถือ: ถ้า browser หลุด/ปิดแท็บก่อนเขียนเสร็จ รายการนั้นจะไม่ถูกบันทึกและไม่มี retry อัตโนมัติ) เปิดดูได้ผ่าน Firebase Console โดย admin เท่านั้น (ยังไม่มีหน้าจอ UI ในแอปให้ดู) — เอกสารแก้ไข/ลบไม่ได้เลย (immutable) และไม่มีนโยบายลบ/TTL (เก็บถาวร)
+>
+> **หมายเหตุ enum:** ฟิลด์ `capability`/`callerRole` ใช้ค่าภาษาอังกฤษ (`"deviation-summary"`/`"draft-reason"`, `"pharmacist"`) แทนป้ายภาษาไทยที่ปรากฏในตารางผนวกของ [spec 008](../01-requirements/01-spec/20260914-008-pharmacist-approval-ai-assistant.md) — ตั้งใจให้สอดคล้องกับ enum ภาษาอังกฤษที่ใช้จริงอยู่แล้วทั้งไฟล์นี้ (`kind` เดิมใน `ai-assistant.js`) และ `firestore.rules` (`role`/`status`/`decision`/`type`) ป้ายภาษาไทยในตาราง spec เป็นคำอธิบายความหมาย ไม่ใช่ค่าที่บังคับใช้ตัวอักษรตรงตัว
+
+| Field | ชนิด | จำเป็น | หมายเหตุ |
+|---|---|---|---|
+| `callerId` (ผู้เรียก) | string (ref → `users`, uid) | ใช่ | ต้องตรงกับ `request.auth.uid` ของผู้เขียนเสมอ (บังคับที่ `firestore.rules`) |
+| `callerRole` (บทบาทผู้เรียก ณ ขณะเรียก) | string enum: `"pharmacist"` | ใช่ | ปัจจุบันมีค่าเดียวเท่านั้นตามขอบเขต FR-8.1 |
+| `requisitionId` (คำขอเบิกยาที่เกี่ยวข้อง) | string (ref → `requisitions`) | ใช่ | คำขอที่กำลังพิจารณาขณะเรียกใช้ผู้ช่วย AI |
+| `capability` (ความสามารถที่เรียก) | string enum: `"deviation-summary"` \| `"draft-reason"` | ใช่ | ตรงกับ `kind` ที่ส่งให้ `/api/ai-assist` |
+| `inputPayload` (ข้อมูลนำเข้าที่ส่งให้ AI) | string (JSON-encoded) | ใช่ | `JSON.stringify()` ของ payload ที่ส่งให้ผู้ช่วย AI (`requisitionCode`/`unitName`/`lineItems`) |
+| `outputText` (ผลลัพธ์ที่ได้จาก AI) | string | ใช่ | เนื้อหาที่แสดงให้เภสัชกรดู/ pre-fill ลงฟอร์มจริง |
+| `calledAt` (วันที่-เวลาที่เรียกใช้) | Timestamp | ใช่ | เวลาที่ client เขียน log (หลังได้ผลลัพธ์สำเร็จ) — ใช้ `new Date()` ตาม convention เดิมของโปรเจกต์ (เทียบ `decidedAt` ใน `approvalRecords`) ไม่ใช้ `serverTimestamp()` |
+
 ## Collection อื่นที่ยังไม่ต้องสร้าง (สำรอง — ใช้ตอนทำหน้าจอถัดไป)
 
 อ้างอิงจาก `06-data-model.md` §3.7, §3.9, §3.12–§3.19 (`manualForecastAdjustments`, `historicalUsageRecords`, `inventoryBalances`, `notificationEvents`, `exportFiles`, `businessAuditLog`, `systemAccessLog`, `printableRequisitionDocuments`) — ยังไม่สร้างในรอบนี้เพราะยังไม่มีหน้าจอที่ต้องใช้ ให้ออกแบบ field ตอนถึงหน้าจอที่ต้องใช้จริง (คงรูปแบบ camelCase + trace กลับ field เชิงแนวคิดเดียวกับหัวข้อบนนี้)
@@ -185,7 +202,7 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 
 **หมายเหตุ (เพิ่ม 20260907):** หน้า `pharmacist/approval-queue-level1.html` query `requisitions` ด้วย `where status=="pending_level1"` **โดยตั้งใจไม่ใส่ `orderBy`** แล้วเรียง `createdAt` ฝั่ง client แทน (เหมือน pattern ของ `drugItems`/`units`) เพื่อเลี่ยงต้องสร้าง composite index ที่ 3 — อย่าเผลอเพิ่ม `orderBy` เข้าไปตรงๆ เพราะจะทำให้ query พังจนกว่าจะสร้าง index ใหม่
 
-## ความปลอดภัย (Security Rules publish จริงแล้ว 20260909 — deploy ผ่าน Firebase CLI)
+## ความปลอดภัย (Security Rules publish จริงแล้ว 20260909, อัปเดตล่าสุด 20260915 เพิ่มกฎ `aiAssistantUsageLogs` — deploy ผ่าน Firebase CLI)
 
 **[`../firestore.rules`](../firestore.rules) กรองตาม `role`/`unitId` จริงแล้ว** (เพิ่ม 20260908, แทนกฎเดิม "แค่ต้อง login") — สรุปกฎหลัก:
 
@@ -196,6 +213,7 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 - `requisitions`: staff-hph อ่าน/สร้างได้เฉพาะของหน่วยตัวเอง (สร้างต้องเริ่มที่ `status: "pending_level1"`, `recordVersion: 1` เท่านั้น กัน client ปลอมสถานะข้ามขั้นตอน) — เภสัชกร/ผู้บริหาร/admin อ่านได้ทั้งเครือข่าย — เภสัชกรแก้ได้เฉพาะ `status`/`recordVersion` ตอน pending_level1 เท่านั้น (ขอบเขตปัจจุบัน: เฉพาะ transition ของระดับ 1 — ต้องขยายกฎตอนทำหน้าอนุมัติระดับ 2 จริง) — **ห้ามลบจาก client เด็ดขาด**
   - `lineItems`/`approvalRecords` (subcollection): สิทธิ์อ่าน/เขียนอิงจาก `unitId`/`status` ของคำขอแม่ (อ่านผ่าน `get()`) — เภสัชกรแก้ `lineItems` ได้เฉพาะ `approvedQuantity`/`pharmacistConfirmedBalance`, สร้าง `approvalRecords` ได้เฉพาะ `level: 1` เท่านั้น (ขอบเขตปัจจุบัน) — ทั้งคู่ **ห้ามแก้/ลบหลังสร้างแล้ว**
 - `goodsReceiptRecords`: staff-hph อ่านได้เฉพาะของหน่วยตัวเอง (ตาม `receivingUnitId`), เภสัชกร/ผู้บริหาร/admin อ่านได้ทั้งเครือข่าย — **ยังไม่เปิดสิทธิ์เขียนจาก client เลย** เพราะยังไม่มีหน้าจอยืนยันรับยาจริง
+- **(เพิ่ม 20260915, BL-048)** `aiAssistantUsageLogs`: อ่านได้เฉพาะ admin, เขียน (`create`) ได้เฉพาะเภสัชกรที่เขียนบันทึกของตัวเอง (`callerId == request.auth.uid`) — **ห้ามแก้/ลบเอกสารที่มีอยู่แล้วเลยแม้แต่ admin** (immutable) — publish แล้ว 20260915 ผ่าน `firebase.cmd deploy --only firestore:rules`
 - collection อื่นที่ยังไม่ได้สร้าง (ดูหัวข้อด้านบน) — ปฏิเสธทุกการเข้าถึงไว้ก่อนอย่างชัดเจน
 
 **หมายเหตุการเปลี่ยนโค้ดที่มากับกฎชุดนี้ (สำคัญ):**
@@ -212,7 +230,7 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 2. สร้าง Firebase project แยกสำหรับ dev/test ที่ยังใช้กฎแบบเปิด ส่วน project จริงใช้กฎชุดนี้
 3. ใส่ข้อมูลตัวอย่างผ่าน Firebase Console → Firestore Database (แก้ข้อมูลตรงผ่าน Console ไม่ถูกจำกัดโดย Security Rules เพราะไม่ได้ผ่าน client SDK)
 
-**Publish แล้ว (20260909) ผ่าน Firebase CLI** — `firebase.cmd deploy --only firestore:rules` (ใช้ `firebase.cmd` แทน `firebase` เปล่าๆ บน Windows PowerShell เพราะ execution policy เริ่มต้นบล็อก shim `.ps1` ของ npm — ดู `firebase.json`/`.firebaserc` ที่ root ของ config ที่ใช้ deploy) พร้อมกับ Firebase Hosting ของ `app/` ที่ `https://syncsmart-98d1e.web.app` (`firebase.cmd deploy --only hosting`) — สอง target นี้ deploy แยกคำสั่งกันได้ หรือรวมเป็น `firebase.cmd deploy --only hosting,firestore:rules` คำสั่งเดียวก็ได้
+**Publish แล้ว (20260909, อัปเดตล่าสุด 20260915) ผ่าน Firebase CLI** — `firebase.cmd deploy --only firestore:rules` (ใช้ `firebase.cmd` แทน `firebase` เปล่าๆ บน Windows PowerShell เพราะ execution policy เริ่มต้นบล็อก shim `.ps1` ของ npm — ดู `firebase.json`/`.firebaserc` ที่ root ของ config ที่ใช้ deploy) พร้อมกับ Firebase Hosting ของ `app/` ที่ `https://syncsmart-98d1e.web.app` (`firebase.cmd deploy --only hosting`) — สอง target นี้ deploy แยกคำสั่งกันได้ หรือรวมเป็น `firebase.cmd deploy --only hosting,firestore:rules` คำสั่งเดียวก็ได้
 
 **ก่อน publish ได้ทำไปแล้ว:**
 - ยืนยันด้วยการทดสอบจริง — login เป็น staff-hph หน่วย A แล้วลองอ่าน/เขียนคำขอของหน่วย B ถูกปฏิเสธจริง (`permission-denied`), ลอง approve คำขอเดิม 2 ครั้งด้วย recordVersion เก่าถูกปฏิเสธจริง, ไม่ login เข้าหน้าจอตรงๆ ถูก redirect กลับ `login.html` — ผ่านทั้งหมด
@@ -253,7 +271,7 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 - `_worker.js` (ที่ `app/` root) — handle `POST /api/ai-assist` เท่านั้น คำขออื่นทั้งหมด fallback ไป `env.ASSETS.fetch()` เพื่อ serve static ตามเดิมทุกประการ
 - `wrangler.toml` (ที่ `app/` เพราะ Cloudflare project ตั้ง Root directory = `/app`) — ประกาศ `main = "_worker.js"` + `[assets]` binding
 - ตรวจ `Authorization: Bearer <Firebase ID token>` ทุก request ผ่าน Firebase Identity Toolkit REST `accounts:lookup` (ยืนยันแค่ login จริง ไม่เช็ค role ลึกกว่านั้น — เพียงพอกันคนนอกยิง endpoint ตรงๆ ในขนาดการใช้งานปัจจุบัน)
-- `lib/ai-assistant.js` (client) — `requestDeviationSummary()`/`requestDraftReason()` เรียก `/api/ai-assist` พร้อม Firebase ID token เสมอ ไม่เรียก OpenRouter ตรงจาก browser (ต่างจาก `ai-test.html` ที่ตั้งใจให้รัน local เท่านั้น)
+- `lib/ai-assistant.js` (client) — `requestDeviationSummary()`/`requestDraftReason()` เรียก `/api/ai-assist` พร้อม Firebase ID token เสมอ ไม่เรียก OpenRouter ตรงจาก browser (ต่างจาก `ai-test.html` ที่ตั้งใจให้รัน local เท่านั้น) — เขียนบันทึกการใช้งานลง Firestore (`aiAssistantUsageLogs`) ให้อัตโนมัติทุกครั้งที่เรียกสำเร็จ ดูหัวข้อ "บันทึกการใช้งานผู้ช่วย AI" ด้านล่าง
 
 **ทดสอบ local ด้วย `wrangler dev` (จำลอง Worker ก่อน deploy จริง):** รันจาก `app/` ด้วย:
 ```
@@ -267,13 +285,25 @@ npx.cmd wrangler dev --persist-to ..\.wrangler-state
 1. ตรวจว่า `app/wrangler.toml` ฟิลด์ `name` ตรงกับชื่อโปรเจกต์จริงบน Cloudflare dashboard (คาดว่าคือ `sync-smart`) — ถ้าไม่ตรง deploy อาจสร้างโปรเจกต์ใหม่แยกต่างหากแทนที่จะ deploy ทับของเดิม
 2. ตั้ง secret `OPENROUTER_API_KEY` บน Cloudflare Worker project ผ่าน dashboard (Settings → Variables → Encrypt) หรือ `wrangler secret put OPENROUTER_API_KEY`
 3. Deploy แล้วทดสอบ `/api/ai-assist` ตอบกลับจริง (ไม่ใช่ 404/500) พร้อมตรวจ network tab ว่าไม่มีการยิง OpenRouter ตรงจาก browser และไม่มีคีย์หลุดในหน้าเว็บที่โหลด
+4. ~~`firestore.rules` มีกฎของ `aiAssistantUsageLogs` เพิ่มแล้ว — ต้อง publish ใหม่~~ — **publish แล้ว 20260915** ผ่าน `firebase.cmd deploy --only firestore:rules` (ดูหัวข้อ "บันทึกการใช้งานผู้ช่วย AI" ด้านล่าง)
 
 **ขอบเขตที่ตัดออกในรอบแรกนี้ (เทียบกับ spec 008 เต็มรูปแบบ):**
 - **ไม่มีข้อมูลประวัติย้อนหลัง 3 ปี** — collection `historicalUsageRecords` ที่ FR-8.3 ตั้งใจให้ใช้ยังไม่ถูกสร้างจริง ความสามารถ (ก) จึงสรุปจากตัวเลขของคำขอปัจจุบันเท่านั้น (ยอดขอเบิก/ยอดแนะนำ/ยอดคงเหลือ/เกณฑ์ Safety Stock ปัจจุบันจาก `safetyStockThresholds`)
 - **เกณฑ์ trigger % (FR-8.4) hardcode = 25%** เป็นค่าคงที่ `AI_TRIGGER_THRESHOLD_PERCENT` ในโค้ด (ซ้ำอยู่ทั้งใน `_worker.js` เชิงเอกสาร, `approval-review-level1.html`, และ `approval-queue-level1.html`) — ส่วน "Admin ปรับได้ผ่านหน้าตั้งค่า" รอหน้า Admin ตั้งค่าระบบจริง (FT-034) ที่ยังไม่มีโค้ด
 - **ความสามารถ (ข) จำกัดเฉพาะฟอร์มปฏิเสธเท่านั้น** — หน้า `approval-review-level1.html` ปัจจุบันไม่มีช่องกรอกเหตุผลสำหรับกรณี "ปรับยอด" (แก้ตัวเลขในช่อง "จำนวนที่อนุมัติ" แล้วกดอนุมัติ ไม่มี UI ขอเหตุผลเลย) จึงยังไม่มีจุดให้ผูกปุ่ม AI ร่างข้อความ — เป็น gap ของ UI เดิมเอง ไม่ใช่ของฟีเจอร์นี้
 - **หมายเหตุข้อมูลจริงตอนนี้:** ฟิลด์ `requestedQuantity` ("ยอดขอเบิก") เท่ากับ `suggestedQuantity` เสมอ เพราะปุ่ม "ขอปรึกษา" (BL-003, ทางเดียวที่ทำให้สองค่านี้ต่างกันได้) ยังไม่ได้พัฒนาจริง — แปลว่า badge "เบี่ยงเบนมาก" จะแทบไม่ขึ้นเลยกับข้อมูลจริงในรอบนี้ (ถูกต้องตามสเปค ไม่ใช่บั๊ก — ปุ่มเรียกดู AI ยังกดใช้งานได้ปกติเสมอตาม FR-8.5) ทดสอบให้เห็นผลชัดเจนต้องตั้งค่า `requestedQuantity` ต่างจาก `suggestedQuantity` เองผ่าน Firebase Console
-- ไม่มีการเก็บ/persist ผลลัพธ์ AI ใดๆ ลง Firestore (ตามสเปค) — ไม่ต้องแก้ `firestore.rules`
+- ~~ไม่มีการเก็บ/persist ผลลัพธ์ AI ใดๆ ลง Firestore~~ — **เข้าสู่เฟสพัฒนาแล้ว 20260915 (BL-048)** ดูหัวข้อ "บันทึกการใช้งานผู้ช่วย AI" ด้านล่าง
+
+## บันทึกการใช้งานผู้ช่วย AI (BL-048/FR-8.7-FR-8.11, เพิ่ม 20260915)
+
+ทุกครั้งที่เรียกใช้ผู้ช่วย AI สำเร็จ (ทั้งความสามารถ (ก) และ (ข)) `lib/ai-assistant.js` จะเขียนเอกสารใหม่ 1 รายการลง `aiAssistantUsageLogs` จากฝั่ง client ทันทีหลังได้รับผลลัพธ์กลับมา — โครงสร้างฟิลด์เต็มดูที่หัวข้อ "`aiAssistantUsageLogs/{logId}`" ใน "Firestore Schema" ด้านบน
+
+- **ดูบันทึกได้ที่ไหน:** Firebase Console → โปรเจกต์ `syncsmart-98d1e` → Firestore Database → collection `aiAssistantUsageLogs` — เฉพาะบัญชีที่มี `role: "admin"` เท่านั้นที่ผ่าน `firestore.rules` ได้ (ตรงกับสิทธิ์ระดับ Firebase project ที่ผู้ดู Console ต้องมีอยู่แล้วเป็นทุนเดิม ไม่ใช่ RBAC ชั้นเพิ่มเติม)
+- **ไม่มีหน้าจอ UI ในแอปให้ดู log นี้** ในรอบนี้ (ตามที่เจ้าของระบบยืนยัน — ดูได้เฉพาะผ่าน Firebase Console เท่านั้น)
+- **Immutable + เก็บถาวร:** `firestore.rules` เปิดเฉพาะ `create` (เจ้าของบันทึกเขียนของตัวเองเท่านั้น) ปิด `update`/`delete` ให้ทุก role รวมถึง admin — ไม่มี TTL/archive policy
+- **เขียนจากฝั่ง client เท่านั้น** (ไม่ใช่ Worker) — ถ้าเขียนไม่สำเร็จ (เช่น เครือข่ายหลุด/ปิดแท็บก่อนเขียนเสร็จ) รายการนั้นจะหายไปเงียบๆ ไม่มี retry/queue อัตโนมัติ — เป็น trade-off ที่ยอมรับแล้วตาม FR-8.11 ไม่ใช่บั๊ก
+- **ทดสอบด้วยตัวเอง:** login เป็นเภสัชกร → เปิดคำขอที่ `pending_level1` → กด "เรียกดูผู้ช่วย AI" หรือ "ให้ AI ช่วยร่างข้อความเหตุผล" → เปิด Firebase Console ด้วยบัญชี admin ควรเห็นเอกสารใหม่ปรากฏใน `aiAssistantUsageLogs` ทันที — ถ้า login เป็น role อื่น (staff_hph) หรือไม่ login เลย แล้วลองอ่าน collection นี้ผ่าน client SDK ต้องถูกปฏิเสธ (`permission-denied`)
+- **ยืนยันแล้วจริง (20260915)** ผ่าน `wrangler dev` (`--persist-to` ต้องชี้ออกนอก `app/` เสมอ ไม่งั้นจะเจอบั๊ก reload วนไม่จบที่บันทึกไว้ด้านบน) + login เป็น `pharmacist-a@smartsync.test` จริง — เรียกทั้งความสามารถ (ก) และ (ข) สำเร็จ (`POST /api/ai-assist` → 200 OK ทั้งคู่, ไม่มี console error จากการเขียน log) และผู้ใช้ยืนยันด้วยตาเองผ่าน Firebase Console แล้วว่าเห็นเอกสารทั้ง 2 รายการจริงใน `aiAssistantUsageLogs`
 
 ## ขั้นต่อไป (ยังไม่ทำในรอบนี้ — รอคำสั่งเจาะจง)
 

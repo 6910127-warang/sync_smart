@@ -448,7 +448,7 @@
     btn.disabled = true;
     btn.textContent = "กำลังร่างข้อความ…";
     try {
-      const text = await requestDraftReason(auth, {
+      const text = await requestDraftReason(auth, db, requisitionId, {
         requisitionCode: document.getElementById("page-title").textContent,
         unitName: document.getElementById("page-subtitle").textContent,
         lineItems: currentAiLineItems
@@ -494,7 +494,7 @@
     content.textContent = "กำลังเรียกผู้ช่วย AI…";
     modal.style.display = "flex";
     try {
-      const text = await requestDeviationSummary(auth, {
+      const text = await requestDeviationSummary(auth, db, requisitionId, {
         requisitionCode: pageTitle.textContent,
         unitName: pageSubtitle.textContent,
         lineItems: currentAiLineItems
