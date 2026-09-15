@@ -1,0 +1,59 @@
+<!--
+  หน้าทดสอบเรียก AI ผ่าน OpenRouter (dev only, local test) — ไม่ใช่ feature จริงของระบบ
+  คีย์ OpenRouter อยู่ใน lib/openrouter-config.js ซึ่งถูก .gitignore กันไว้ ไม่ขึ้น git
+  คำเตือน: หน้านี้เรียก OpenRouter ตรงจาก browser จึงมีคีย์อยู่ในหน้าเว็บที่โหลดจริง (ดู network tab ได้)
+  ถ้าจะ deploy ให้หน่วยงานอื่นเข้าถึงได้ ต้องมี backend คั่นเพื่อซ่อนคีย์ก่อน — หน้านี้จึงใช้ทดสอบบนเครื่องตัวเอง (localhost) เท่านั้น
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ทดสอบ AI (OpenRouter) — SmartSync (dev only)</title>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/components.css">
+</head>
+<body>
+<div class="content" style="max-width:640px;margin:0 auto;">
+  <h1>ทดสอบ AI ผ่าน OpenRouter</h1>
+  <p class="text-secondary">กดปุ่มเพื่อส่งข้อความ "สวัสดี" ไปยังโมเดล <code id="model-name"></code> แล้วแสดงคำตอบด้านล่าง</p>
+  <button class="btn btn-primary" id="send-btn" style="width:auto;">ส่งข้อความ "สวัสดี"</button>
+  <pre id="log" style="white-space:pre-wrap;background:var(--color-bg-muted);padding:var(--space-4);border-radius:var(--radius-md);margin-top:var(--space-4);"></pre>
+</div>
+<script type="module">
+  import { openRouterConfig } from "./lib/openrouter-config.js";
+
+  const modelNameEl = document.getElementById("model-name");
+  const btn = document.getElementById("send-btn");
+  const logEl = document.getElementById("log");
+  modelNameEl.textContent = openRouterConfig.model;
+
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    logEl.textContent = "กำลังส่งข้อความ...";
+    try {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${openRouterConfig.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: openRouterConfig.model,
+          messages: [{ role: "user", content: "สวัสดี" }],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        logEl.textContent = `เกิดข้อผิดพลาด (${res.status}):\n${JSON.stringify(data, null, 2)}`;
+        return;
+      }
+      logEl.textContent = data.choices?.[0]?.message?.content ?? JSON.stringify(data, null, 2);
+    } catch (err) {
+      logEl.textContent = `เรียก API ไม่สำเร็จ: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

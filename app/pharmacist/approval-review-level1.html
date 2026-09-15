@@ -67,10 +67,16 @@
 
         <div id="stale-error-banner" class="alert-banner alert-danger" style="display:none;"></div>
 
+        <p style="display:flex; align-items:center; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-4);">
+          <button class="btn btn-secondary" id="ai-summary-btn" type="button" style="width:auto;">เรียกดูผู้ช่วย AI</button>
+          <span id="ai-trigger-badge" class="badge badge-warning" style="display:none;">เบี่ยงเบนจากยอดแนะนำมาก</span>
+        </p>
+
         <table class="data-table">
           <thead>
             <tr>
               <th>รายการยา</th>
+              <th class="num">ยอดขอเบิก</th>
               <th class="num">ยอดแนะนำเบิก</th>
               <th class="num">ยอดคงเหลือที่ จนท. แจ้ง</th>
               <th class="num">ยอดคงเหลือที่เภสัชกรยืนยัน/แก้ไข (ถ้าพบว่าไม่ตรง)</th>
@@ -78,7 +84,7 @@
             </tr>
           </thead>
           <tbody id="line-item-rows">
-            <tr class="state-row"><td colspan="5">กำลังโหลดข้อมูล…</td></tr>
+            <tr class="state-row"><td colspan="6">กำลังโหลดข้อมูล…</td></tr>
           </tbody>
         </table>
 
@@ -109,10 +115,26 @@
     <div class="form-field">
       <label for="reject-reason">เหตุผลการปฏิเสธ (จำเป็นต้องกรอก)</label>
       <input type="text" id="reject-reason" placeholder="เช่น ยอดคงเหลือที่แจ้งไม่ตรงกับที่ตรวจนับจริง">
+      <div id="reject-reason-ai-error" class="field-error" style="display:none;">กรุณาตรวจสอบ/แก้ไขข้อความที่ผู้ช่วย AI ร่างให้ก่อนส่งเสมอ</div>
     </div>
+    <p style="margin-top: var(--space-2);">
+      <button class="btn-text" id="draft-reason-ai-btn" type="button">ให้ AI ช่วยร่างข้อความเหตุผล</button>
+    </p>
+    <p class="text-secondary" style="font-size: var(--font-size-caption);">เนื้อหาที่ผู้ช่วย AI ร่างให้ใช้ข้อมูลคำขอนี้บางส่วนประมวลผลผ่านบริการ AI ภายนอก — ต้องตรวจสอบ/แก้ไขก่อนส่งเสมอ ไม่ใช่คำแนะนำทางคลินิก</p>
     <div class="modal-actions">
       <button class="btn btn-secondary" id="reject-cancel-btn" type="button">ยกเลิก</button>
       <button class="btn btn-danger" id="reject-confirm-btn" type="button" disabled>ยืนยันปฏิเสธคำขอ</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ai-summary-modal" style="display:none;">
+  <div class="modal">
+    <h2>ผู้ช่วย AI — สรุปเหตุผลความเบี่ยงเบน</h2>
+    <p class="text-secondary" style="font-size: var(--font-size-caption);">เนื้อหานี้สร้างโดย AI ภายนอกจากข้อมูลคำขอนี้บางส่วน ใช้ประกอบการตัดสินใจเท่านั้น ไม่ใช่คำแนะนำทางคลินิกและไม่ใช่การอนุมัติ/ปฏิเสธแทนเภสัชกร</p>
+    <p id="ai-summary-content" style="white-space:pre-wrap;">กำลังเรียกผู้ช่วย AI…</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="ai-summary-close-btn" type="button">ปิด</button>
     </div>
   </div>
 </div>
@@ -125,10 +147,14 @@
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { firebaseConfig } from "../firebase-config.js";
   import { getAuthForApp, signOutUser, watchAuth } from "../lib/auth.js";
+  import { requestDeviationSummary, requestDraftReason } from "../lib/ai-assistant.js";
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuthForApp(app);
+
+  // ผู้ช่วย AI (FT-036/BL-047) — เกณฑ์ trigger badge hardcode ไปก่อน (ยังไม่มีหน้า Admin ตั้งค่าจริง, FT-034)
+  const AI_TRIGGER_THRESHOLD_PERCENT = 25;
 
   const STATUS_LABEL = {
     pending_level1: "รอการอนุมัติระดับ 1",
@@ -157,6 +183,8 @@
   let pharmacistSession = null;
   let expectedVersion = null;   // recordVersion ที่อ่านได้ล่าสุด — ใช้เช็คตอนบันทึกจริง (BL-036/FR-6.5)
   let lineItemIds = [];         // drugItemId -> lineItemId (Firestore doc id ของ lineItems)
+  let currentAiLineItems = [];  // ข้อมูลรายการยาที่ส่งให้ผู้ช่วย AI (ก)/(ข) — อัปเดตทุกครั้งที่โหลด/แก้จำนวนที่อนุมัติ
+  let aiDraftReasonText = null; // ข้อความล่าสุดที่ AI ร่างให้ในฟอร์มปฏิเสธ — ใช้ตรวจว่าเภสัชกรแก้ไขแล้วหรือยัง (FR-8.6)
 
   function withTimeout(promise, ms, timeoutMessage) {
     return Promise.race([
@@ -215,6 +243,18 @@
     approveBtn.disabled = !allValid;
   }
 
+  function deviationPercent(requested, suggested) {
+    if (!Number.isFinite(requested) || !Number.isFinite(suggested)) return 0;
+    if (suggested === 0) return requested === 0 ? 0 : 100;
+    return Math.abs(requested - suggested) / suggested * 100;
+  }
+
+  // เน้น/แสดง badge บนปุ่มเรียกดูผู้ช่วย AI เฉพาะเมื่อมีรายการยาเบี่ยงเบนเกินเกณฑ์ (FR-8.4) — ปุ่มยังกดใช้งานได้ปกติเสมอไม่ว่ากรณีใด (FR-8.5)
+  function updateAiTriggerBadge() {
+    const exceeds = currentAiLineItems.some((li) => deviationPercent(li.requestedQuantity, li.suggestedQuantity) > AI_TRIGGER_THRESHOLD_PERCENT);
+    document.getElementById("ai-trigger-badge").style.display = exceeds ? "" : "none";
+  }
+
   async function loadRequisition() {
     if (!requisitionId) {
       showNoticeView("ไม่พบคำขอที่ต้องการ — กรุณาเลือกจากรายการ");
@@ -246,16 +286,40 @@
       pageSubtitle.textContent = `หน่วย ${unitName} — สถานะ: ${STATUS_LABEL[req.status] || req.status}`;
 
       if (lineSnap.empty) {
-        rowsBody.innerHTML = `<tr class="state-row"><td colspan="5">คำขอนี้ยังไม่มีรายการยา</td></tr>`;
+        rowsBody.innerHTML = `<tr class="state-row"><td colspan="6">คำขอนี้ยังไม่มีรายการยา</td></tr>`;
         approveBtn.disabled = true;
+        currentAiLineItems = [];
       } else {
+        const thresholdSnap = await getDocs(query(collection(db, "safetyStockThresholds"), where("unitId", "==", req.unitId)));
+        const thresholdMap = new Map(); // drugItemId -> { value, month } — เอาเดือนล่าสุดถ้ามีหลายรายการ
+        thresholdSnap.docs.forEach((d) => {
+          const t = d.data();
+          const cur = thresholdMap.get(t.drugItemId);
+          if (!cur || t.referenceMonth > cur.month) thresholdMap.set(t.drugItemId, { value: t.thresholdValue, month: t.referenceMonth });
+        });
+
         lineItemIds = lineSnap.docs.map((d) => d.id);
-        rowsBody.innerHTML = lineSnap.docs.map((d) => {
+        currentAiLineItems = lineSnap.docs.map((d) => {
+          const line = d.data();
+          const threshold = thresholdMap.get(line.drugItemId);
+          // FR-1.1c: ถ้าไม่มีฟิลด์ requestedQuantity (เอกสารเก่าก่อน 20260915) ค่าเริ่มต้นคือเท่ากับยอดแนะนำเบิกเสมอ
+          const requestedQuantity = line.requestedQuantity ?? line.suggestedQuantity;
+          return {
+            drugName: drugNameMap.get(line.drugItemId) || line.drugItemId,
+            requestedQuantity,
+            suggestedQuantity: line.suggestedQuantity,
+            selfReportedBalance: line.selfReportedBalance,
+            approvedQuantity: line.suggestedQuantity, // ค่าเริ่มต้น — อัปเดตสดตอนเภสัชกรแก้ช่องจำนวนที่อนุมัติ (ดู listener ด้านล่าง)
+            safetyStockThreshold: threshold ? threshold.value : null
+          };
+        });
+        rowsBody.innerHTML = lineSnap.docs.map((d, idx) => {
           const line = d.data();
           const drugName = drugNameMap.get(line.drugItemId) || line.drugItemId;
           return `
             <tr data-line-item-id="${d.id}">
               <td data-label="รายการยา">${drugName}</td>
+              <td data-label="ยอดขอเบิก" class="num">${currentAiLineItems[idx].requestedQuantity}</td>
               <td data-label="ยอดแนะนำเบิก" class="num">${line.suggestedQuantity}</td>
               <td data-label="ยอดคงเหลือที่ จนท. แจ้ง" class="num">${line.selfReportedBalance}</td>
               <td data-label="ยอดคงเหลือที่เภสัชกรยืนยัน/แก้ไข" class="num">
@@ -271,7 +335,14 @@
         rowsBody.querySelectorAll(".approved-qty-input, .confirmed-balance-input").forEach((input) => {
           input.addEventListener("input", checkApproveValid);
         });
+        rowsBody.querySelectorAll(".approved-qty-input").forEach((input, idx) => {
+          input.addEventListener("input", () => {
+            const val = parseInt(input.value, 10);
+            if (currentAiLineItems[idx]) currentAiLineItems[idx].approvedQuantity = Number.isFinite(val) ? val : null;
+          });
+        });
         checkApproveValid();
+        updateAiTriggerBadge();
       }
 
       showReviewView();
@@ -359,17 +430,49 @@
   rejectBtn.addEventListener("click", () => {
     document.getElementById("reject-reason").value = "";
     document.getElementById("reject-confirm-btn").disabled = true;
+    document.getElementById("reject-reason-ai-error").style.display = "none";
+    aiDraftReasonText = null;
     document.getElementById("reject-modal").style.display = "flex";
   });
   document.getElementById("reject-cancel-btn").addEventListener("click", () => {
     document.getElementById("reject-modal").style.display = "none";
   });
   document.getElementById("reject-reason").addEventListener("input", (e) => {
-    document.getElementById("reject-confirm-btn").disabled = e.target.value.trim() === "";
+    const val = e.target.value;
+    document.getElementById("reject-reason-ai-error").style.display = "none";
+    // ต้องไม่ว่าง และถ้าเคยใช้ผู้ช่วย AI ร่างให้ ต้องถูกแก้ไข/แตะต้องก่อนเสมอ ห้ามส่งข้อความที่ AI ร่างไว้แบบไม่ถูกแตะต้องเลย (FR-8.6)
+    document.getElementById("reject-confirm-btn").disabled = val.trim() === "" || (aiDraftReasonText !== null && val === aiDraftReasonText);
+  });
+  document.getElementById("draft-reason-ai-btn").addEventListener("click", async () => {
+    const btn = document.getElementById("draft-reason-ai-btn");
+    btn.disabled = true;
+    btn.textContent = "กำลังร่างข้อความ…";
+    try {
+      const text = await requestDraftReason(auth, {
+        requisitionCode: document.getElementById("page-title").textContent,
+        unitName: document.getElementById("page-subtitle").textContent,
+        lineItems: currentAiLineItems
+      });
+      aiDraftReasonText = text;
+      const reasonInput = document.getElementById("reject-reason");
+      reasonInput.value = text;
+      reasonInput.dispatchEvent(new Event("input"));
+    } catch (err) {
+      alert("ให้ AI ร่างข้อความไม่สำเร็จ: " + err.message);
+      console.error("requestDraftReason failed:", err);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "ให้ AI ช่วยร่างข้อความเหตุผล";
+    }
   });
   document.getElementById("reject-confirm-btn").addEventListener("click", async () => {
-    const reason = document.getElementById("reject-reason").value.trim();
+    const reasonInput = document.getElementById("reject-reason");
+    const reason = reasonInput.value.trim();
     if (!reason) return;
+    if (aiDraftReasonText !== null && reasonInput.value === aiDraftReasonText) {
+      document.getElementById("reject-reason-ai-error").style.display = "block";
+      return;
+    }
     const confirmBtn = document.getElementById("reject-confirm-btn");
     confirmBtn.disabled = true;
     try {
@@ -383,6 +486,27 @@
     } finally {
       confirmBtn.disabled = false;
     }
+  });
+
+  document.getElementById("ai-summary-btn").addEventListener("click", async () => {
+    const modal = document.getElementById("ai-summary-modal");
+    const content = document.getElementById("ai-summary-content");
+    content.textContent = "กำลังเรียกผู้ช่วย AI…";
+    modal.style.display = "flex";
+    try {
+      const text = await requestDeviationSummary(auth, {
+        requisitionCode: pageTitle.textContent,
+        unitName: pageSubtitle.textContent,
+        lineItems: currentAiLineItems
+      });
+      content.textContent = text;
+    } catch (err) {
+      content.textContent = "เรียกผู้ช่วย AI ไม่สำเร็จ: " + err.message;
+      console.error("requestDeviationSummary failed:", err);
+    }
+  });
+  document.getElementById("ai-summary-close-btn").addEventListener("click", () => {
+    document.getElementById("ai-summary-modal").style.display = "none";
   });
 
   signOutBtn.addEventListener("click", () => {

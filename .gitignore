@@ -1,3 +1,7 @@
 .obsidian/
 .claude/ngrok.log
 .firebase/
+app/lib/openrouter-config.js
+app/.dev.vars
+app/.wrangler/
+.wrangler-state/

@@ -107,6 +107,7 @@ Document ID: auto-id ของ Firestore (`addDoc`) — คงเป็นตั
 |---|---|---|---|
 | `drugItemId` (รายการยา) | string (ref → `drugItems`) | ใช่ | |
 | `suggestedQuantity` (ยอดแนะนำเบิก) | integer | ใช่ | คำนวณตอนยืนยันคำขอ = `max(safetyStockThresholds.thresholdValue - selfReportedBalance, 0)` — ถ้าหน่วย/รายการยานั้นยังไม่มี threshold ของเดือนนี้ ใช้ `0` (แสดงผล "— (ยังไม่ตั้งเกณฑ์)" ในฟอร์ม) |
+| `requestedQuantity` (ยอดขอเบิก) | integer | ใช่ | **เพิ่ม 20260915 (FR-1.1c, FT-036/BL-047):** เท่ากับ `suggestedQuantity` เสมอ เว้นแต่เจ้าหน้าที่กรอกยอดที่ต้องการขอเบิกจริงผ่านปุ่ม "ขอปรึกษา" (FR-1.1b) — ปุ่มนี้ยัง `disabled` อยู่เสมอในรอบนี้ (รอ BL-014 เชื่อม LINE OA จริง) ช่องกรอกต่อแถวจึงถูกเตรียม logic ไว้ล่วงหน้าเท่านั้น (`requisition-new.html`) ทำให้ `requestedQuantity == suggestedQuantity` ทุกแถวในทางปฏิบัติจนกว่า BL-014 จะเสร็จ — ใช้เป็นฐานเปรียบเทียบของ FR-8.4 (ผู้ช่วย AI, ยังไม่ได้รับคำสั่งเข้าสู่เฟสพัฒนา) |
 | `selfReportedBalance` (ยอดคงเหลือปัจจุบันที่แจ้งเอง) | integer | ใช่ | เก็บไว้ไม่ถูกเขียนทับแม้กระทบยอดภายหลัง |
 | `pharmacistConfirmedBalance` (ยอดคงเหลือที่เภสัชกรยืนยัน/แก้ไข) | integer \| null | ไม่บังคับ | มีค่า = ยอดที่ถูกต้อง/มีผลผูกพันแทนยอดเดิม (FR-1.9b) — เขียนจริงแล้วโดย `pharmacist/approval-review-level1.html` (เพิ่ม 20260907) แต่เป็นช่องกรอก **manual/สมัครใจ** เท่านั้น ไม่มี auto-detect ยอดไม่ตรงกัน (BL-032 เต็มรูปแบบต้องรอ `inventoryBalances`/Epic 2) |
 | `approvedQuantity` (ยอดที่อนุมัติจริง) | integer \| null | ไม่บังคับ | ว่างจนผ่านอนุมัติระดับ 1 — `requisition-new.html` เขียนเป็น `null` เสมอตอนสร้าง, เขียนค่าจริงโดย `pharmacist/approval-review-level1.html` (เพิ่ม 20260907) |
@@ -244,6 +245,36 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 
 **สถานะปัจจุบัน (20260914):** ครบทุกข้อแล้ว — deploy จริง, build command, authorized domain, login จริง ยืนยันหมด, ไม่ผูก custom domain (ข้อ 5), และปล่อย URL เดิมของ Firebase Hosting ไว้ขนานกัน (ข้อ 10) — **ถือว่าย้ายไป Cloudflare เสร็จสมบูรณ์ ไม่มีงานค้าง**
 
+## ผู้ช่วย AI สำหรับเภสัชกรผู้อนุมัติระดับ 1 (FT-036/BL-047, เพิ่ม 20260915)
+
+โค้ดจริงอยู่ที่ `pharmacist/approval-review-level1.html` (ปุ่ม "เรียกดูผู้ช่วย AI" + ปุ่ม "ให้ AI ช่วยร่างข้อความเหตุผล" ในฟอร์มปฏิเสธ) และ `pharmacist/approval-queue-level1.html` (badge "เบี่ยงเบนมาก" ในคิว) — spec เต็มดูที่ [01-requirements/01-spec/20260914-008-pharmacist-approval-ai-assistant.md](../01-requirements/01-spec/20260914-008-pharmacist-approval-ai-assistant.md)
+
+**สถาปัตยกรรม — backend component แรกของโปรเจกต์:** เดิมโปรเจกต์นี้เป็น static file + Firestore ล้วน (ไม่มี backend) แต่ฟีเจอร์นี้ต้องเรียก OpenRouter ด้วยคีย์ที่เป็น secret จริง (ต่างจาก Firebase apiKey) — ถ้าเรียกตรงจาก browser บนเว็บที่ deploy จริงแล้ว (Cloudflare) คีย์จะฝังอยู่ในหน้าเว็บที่ใครก็เปิด dev tools ดูได้ จึงเพิ่ม **Cloudflare Worker proxy**:
+- `_worker.js` (ที่ `app/` root) — handle `POST /api/ai-assist` เท่านั้น คำขออื่นทั้งหมด fallback ไป `env.ASSETS.fetch()` เพื่อ serve static ตามเดิมทุกประการ
+- `wrangler.toml` (ที่ `app/` เพราะ Cloudflare project ตั้ง Root directory = `/app`) — ประกาศ `main = "_worker.js"` + `[assets]` binding
+- ตรวจ `Authorization: Bearer <Firebase ID token>` ทุก request ผ่าน Firebase Identity Toolkit REST `accounts:lookup` (ยืนยันแค่ login จริง ไม่เช็ค role ลึกกว่านั้น — เพียงพอกันคนนอกยิง endpoint ตรงๆ ในขนาดการใช้งานปัจจุบัน)
+- `lib/ai-assistant.js` (client) — `requestDeviationSummary()`/`requestDraftReason()` เรียก `/api/ai-assist` พร้อม Firebase ID token เสมอ ไม่เรียก OpenRouter ตรงจาก browser (ต่างจาก `ai-test.html` ที่ตั้งใจให้รัน local เท่านั้น)
+
+**ทดสอบ local ด้วย `wrangler dev` (จำลอง Worker ก่อน deploy จริง):** รันจาก `app/` ด้วย:
+```
+npx.cmd wrangler dev --persist-to ..\.wrangler-state
+```
+(ใช้ `.cmd` แทน `npx` เปล่าๆ บน Windows PowerShell เพราะ execution policy บล็อก shim `.ps1` เหมือน `firebase.cmd`) ต้องสร้าง `app/.dev.vars` เอง (ไม่ commit ขึ้น git — อยู่ใน `.gitignore` แล้ว) ใส่ `OPENROUTER_API_KEY=<คีย์จริง>` ก่อน
+
+**บั๊กที่เจอจริง 20260915 — ต้องใช้ `--persist-to` เสมอ ห้ามรันเฉยๆ:** `wrangler dev` เปล่าๆ (ไม่มี `--persist-to`) reload ตัวเองวนไม่จบ ("Reloading local server..." ซ้ำไม่หยุด ไม่มีวันขึ้น "Ready on http://...") เพราะ `[assets] directory = "."` ครอบคลุมทั้ง `app/` รวมถึง `app/.wrangler/state/` ที่ wrangler สร้างเองตอนรัน (SQLite WAL ของ KV/D1/cache ที่เปลี่ยนแทบทุกครั้งที่เข้าถึง) — watcher เห็นไฟล์ state ของตัวเองเปลี่ยน เลย reload ตัวเอง ซึ่งไปสร้าง/แก้ state ไฟล์อีกรอบ วนไม่จบ **`app/.assetsignore` (ที่มี `.wrangler` อยู่แล้ว) แก้ปัญหานี้ไม่ได้** เพราะไฟล์นั้นควบคุมแค่ตอน deploy จริง (อะไรถูกอัปโหลดเป็น asset) ไม่ใช่ watcher ของ dev mode — ทางแก้จริงคือย้าย persist directory ออกไปนอก `app/` ด้วย `--persist-to` ตามคำสั่งด้านบน (ทดสอบแล้ว 20260915: มี `--persist-to` แล้วขึ้น "Ready on http://127.0.0.1:8787" ครั้งเดียวนิ่ง ไม่วนซ้ำ, `curl POST /api/ai-assist` ตอบ 401 ถูกต้องเมื่อไม่มี token, static asset อื่นยังเสิร์ฟปกติ)
+
+**ขั้นตอน manual ที่ต้องทำเองก่อนฟีเจอร์นี้ใช้งานได้จริงบน production:**
+1. ตรวจว่า `app/wrangler.toml` ฟิลด์ `name` ตรงกับชื่อโปรเจกต์จริงบน Cloudflare dashboard (คาดว่าคือ `sync-smart`) — ถ้าไม่ตรง deploy อาจสร้างโปรเจกต์ใหม่แยกต่างหากแทนที่จะ deploy ทับของเดิม
+2. ตั้ง secret `OPENROUTER_API_KEY` บน Cloudflare Worker project ผ่าน dashboard (Settings → Variables → Encrypt) หรือ `wrangler secret put OPENROUTER_API_KEY`
+3. Deploy แล้วทดสอบ `/api/ai-assist` ตอบกลับจริง (ไม่ใช่ 404/500) พร้อมตรวจ network tab ว่าไม่มีการยิง OpenRouter ตรงจาก browser และไม่มีคีย์หลุดในหน้าเว็บที่โหลด
+
+**ขอบเขตที่ตัดออกในรอบแรกนี้ (เทียบกับ spec 008 เต็มรูปแบบ):**
+- **ไม่มีข้อมูลประวัติย้อนหลัง 3 ปี** — collection `historicalUsageRecords` ที่ FR-8.3 ตั้งใจให้ใช้ยังไม่ถูกสร้างจริง ความสามารถ (ก) จึงสรุปจากตัวเลขของคำขอปัจจุบันเท่านั้น (ยอดขอเบิก/ยอดแนะนำ/ยอดคงเหลือ/เกณฑ์ Safety Stock ปัจจุบันจาก `safetyStockThresholds`)
+- **เกณฑ์ trigger % (FR-8.4) hardcode = 25%** เป็นค่าคงที่ `AI_TRIGGER_THRESHOLD_PERCENT` ในโค้ด (ซ้ำอยู่ทั้งใน `_worker.js` เชิงเอกสาร, `approval-review-level1.html`, และ `approval-queue-level1.html`) — ส่วน "Admin ปรับได้ผ่านหน้าตั้งค่า" รอหน้า Admin ตั้งค่าระบบจริง (FT-034) ที่ยังไม่มีโค้ด
+- **ความสามารถ (ข) จำกัดเฉพาะฟอร์มปฏิเสธเท่านั้น** — หน้า `approval-review-level1.html` ปัจจุบันไม่มีช่องกรอกเหตุผลสำหรับกรณี "ปรับยอด" (แก้ตัวเลขในช่อง "จำนวนที่อนุมัติ" แล้วกดอนุมัติ ไม่มี UI ขอเหตุผลเลย) จึงยังไม่มีจุดให้ผูกปุ่ม AI ร่างข้อความ — เป็น gap ของ UI เดิมเอง ไม่ใช่ของฟีเจอร์นี้
+- **หมายเหตุข้อมูลจริงตอนนี้:** ฟิลด์ `requestedQuantity` ("ยอดขอเบิก") เท่ากับ `suggestedQuantity` เสมอ เพราะปุ่ม "ขอปรึกษา" (BL-003, ทางเดียวที่ทำให้สองค่านี้ต่างกันได้) ยังไม่ได้พัฒนาจริง — แปลว่า badge "เบี่ยงเบนมาก" จะแทบไม่ขึ้นเลยกับข้อมูลจริงในรอบนี้ (ถูกต้องตามสเปค ไม่ใช่บั๊ก — ปุ่มเรียกดู AI ยังกดใช้งานได้ปกติเสมอตาม FR-8.5) ทดสอบให้เห็นผลชัดเจนต้องตั้งค่า `requestedQuantity` ต่างจาก `suggestedQuantity` เองผ่าน Firebase Console
+- ไม่มีการเก็บ/persist ผลลัพธ์ AI ใดๆ ลง Firestore (ตามสเปค) — ไม่ต้องแก้ `firestore.rules`
+
 ## ขั้นต่อไป (ยังไม่ทำในรอบนี้ — รอคำสั่งเจาะจง)
 
 1. ทำหน้ารายละเอียดคำขอ (`requisition-detail.html`) เชื่อม `lineItems` subcollection จริง แทนลิงก์ที่ปิดใช้งานไว้ใน `requisition-list.html`
@@ -254,3 +285,5 @@ Query ของหน้า `requisition-list.html` รวม equality filter �
 6. ทำหน้า audit-trail และเขียน `businessAuditLog` จริง (BL-008) — ยังไม่มีหน้าจอใช้งานจึงยังไม่สร้าง collection นี้ (`firestore.rules` ปฏิเสธไว้ก่อนแล้ว ต้องเพิ่มกฎตอนสร้างจริง)
 7. ทำหน้ายืนยันรับยาจริง เขียน `goodsReceiptRecords` (ตอนนี้อ่านได้อย่างเดียว เขียนถูกปิดไว้ใน `firestore.rules` เพราะยังไม่มีหน้าจอ)
 8. ทำหน้า admin สร้าง/จัดการบัญชีผู้ใช้จริง แทน `seed.html` (dev only) — รวมถึงบังคับใช้งานจริงของ `mustChangePassword`/`twoFactorEnabled`
+9. ทำหน้า Admin ตั้งค่าระบบจริง (FT-034) แล้วย้ายเกณฑ์ trigger % ของผู้ช่วย AI (FR-8.4) จาก `AI_TRIGGER_THRESHOLD_PERCENT` hardcode ในโค้ด ไปเป็น Config Key ที่ปรับได้จริงใน `systemConfiguration`
+10. ถ้าต้องการให้ความสามารถ (ก) ของผู้ช่วย AI อ้างอิงประวัติย้อนหลังจริง ต้องทำ Epic 2/data migration ให้ `historicalUsageRecords` มีข้อมูลจริงก่อน (ตอนนี้ยังไม่ถูกสร้าง — ดูหัวข้อ "ผู้ช่วย AI" ด้านบน)

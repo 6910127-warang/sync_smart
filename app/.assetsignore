@@ -1,0 +1,10 @@
+# Cloudflare Workers static assets — ไฟล์เหล่านี้ไม่ใช่ static asset ที่ควร serve ตรงๆ
+# (wrangler.toml ไม่มี secret แต่ไม่จำเป็นต้อง publish เป็น URL สาธารณะ, _worker.js ถูกใช้เป็น Worker entry
+# อยู่แล้วไม่ใช่ asset — ใส่ไว้ตรงนี้เผื่อ wrangler เวอร์ชันที่ใช้ไม่ exclude ให้อัตโนมัติ)
+wrangler.toml
+_worker.js
+
+# .wrangler/ คือ runtime state ของ `wrangler dev` เอง (SQLite WAL ฯลฯ ที่เปลี่ยนแทบทุกครั้งที่เข้าถึง)
+# เพิ่ม 20260915 หลังพบจริงว่า [assets] directory = "." ครอบคลุม .wrangler/ ไปด้วย ทำให้ wrangler เห็น
+# ไฟล์ state ของตัวเองเปลี่ยน แล้ว reload ตัวเองวนไม่จบ ("Reloading local server..." ซ้ำไม่หยุด)
+.wrangler

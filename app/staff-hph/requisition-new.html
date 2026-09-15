@@ -12,6 +12,9 @@
   - ยังไม่ทำ: FT-008/BL-032 (กระทบยอดคงเหลือที่แจ้งเองกับยอดคงคลัง) — ตาม FR-1.9b เกิดขึ้นตอนอนุมัติระดับ 1 ไม่ใช่ตอนสร้างคำขอ จึงอยู่นอกขอบเขตหน้านี้
   - ยังไม่ทำ: BL-003 ("ขอปรึกษา" ผ่าน LINE OA) — ต้องรอ BL-014 (ช่องทางแจ้งเตือนจริง) ปุ่มนี้จึงปิดใช้งานไว้ก่อน
   - ยังไม่ทำ: คำขอเบิกฉุกเฉิน (FT-อื่น, นอกรอบเดือน) — แยกหน้าต่างหาก
+  หมายเหตุ (เพิ่ม 20260915, FR-1.1c/FT-036/BL-047): เพิ่ม field "ยอดขอเบิก (requestedQuantity)" แยกจาก suggestedQuantity แล้ว ตาม spec 002 FR-1.1a/1.1b/1.1c ที่แก้ไขวันนี้ —
+  เตรียม UI ต่อแถว (ปุ่ม "ขอปรึกษา" + ช่องกรอกยอดที่ต้องการขอเบิกจริง) ไว้ล่วงหน้าแล้ว แต่ปุ่มยังคง disabled เหมือนเดิม (รอ BL-014) จึงไม่มีทางที่ผู้ใช้จะกรอกช่องนี้ได้จริงในรอบนี้ —
+  requestedQuantity ที่บันทึกจริงตอนนี้จึงเท่ากับ suggestedQuantity เสมอ (ค่าเริ่มต้นตาม FR-1.1c) — เมื่อ BL-014 เชื่อม LINE OA จริงแล้ว ค่อยเปิดใช้งานปุ่มนี้ (ลบ disabled/title ออก) โดยไม่ต้องแก้ logic อื่นเพิ่ม
   ดูโครงสร้าง collection/field ทั้งหมดที่ ../README.md
 -->
 <!DOCTYPE html>
@@ -28,6 +31,7 @@
   .topbar-right { display: flex; align-items: center; gap: var(--space-3); }
   #loading-view { max-width: 480px; margin: var(--space-8) auto; }
   #loading-view.hidden, #form-view.hidden, #success-view.hidden { display: none; }
+  .requested-qty-field.hidden { display: none; }
   #success-view { display: none; }
 </style>
 </head>
@@ -66,16 +70,16 @@
               <th>รายการยา</th>
               <th class="num">ยอดแนะนำเบิก (ระบบคำนวณ)</th>
               <th class="num">ยอดคงเหลือปัจจุบัน (กรอกเอง)</th>
+              <th>ไม่เห็นด้วยกับยอดแนะนำ?</th>
             </tr>
           </thead>
           <tbody id="line-item-rows">
-            <tr class="state-row"><td colspan="3">กำลังโหลดข้อมูล…</td></tr>
+            <tr class="state-row"><td colspan="4">กำลังโหลดข้อมูล…</td></tr>
           </tbody>
         </table>
 
         <div class="form-field" style="margin-top: var(--space-6);">
-          <p>ไม่เห็นด้วยกับยอดแนะนำเบิกรายการใด? กดปุ่มด้านล่างเพื่อขอคำปรึกษาจากกลุ่มเภสัชกรผ่าน LINE OA ก่อนยืนยันคำขอ (BL-003)</p>
-          <button class="btn btn-secondary" type="button" disabled title="ยังไม่เชื่อมช่องทางแจ้งเตือน LINE OA จริง (รอ BL-014)">ขอปรึกษา</button>
+          <p class="text-secondary">กดปุ่ม "ขอปรึกษา" ที่รายการยานั้นเพื่อขอคำปรึกษาจากกลุ่มเภสัชกรผ่าน LINE OA และกรอกยอดที่ต้องการขอเบิกจริงแยกจากยอดแนะนำ (BL-003, FR-1.1b/FR-1.1c) — ปุ่มนี้ยังปิดใช้งานอยู่เพราะรอเชื่อมช่องทางแจ้งเตือน LINE OA จริง (BL-014) จึงยังไม่มีรายการใดกรอกยอดขอเบิกต่างจากยอดแนะนำได้ในรอบนี้</p>
         </div>
 
         <p style="margin-top: var(--space-8);">
@@ -152,7 +156,7 @@
   }
 
   function renderState(message) {
-    rowsBody.innerHTML = `<tr class="state-row"><td colspan="3">${message}</td></tr>`;
+    rowsBody.innerHTML = `<tr class="state-row"><td colspan="4">${message}</td></tr>`;
     submitBtn.disabled = true;
   }
 
@@ -208,6 +212,15 @@
       if (errorEl) errorEl.style.display = invalid ? "block" : "none";
       if (invalid) allValid = false;
     });
+    // ยอดที่ต้องการขอเบิกจริง (FR-1.1b/FR-1.1c) ไม่บังคับกรอก แต่ถ้าช่องถูกเปิดแสดงอยู่ (หลังกด "ขอปรึกษา") ต้องกรอกเป็นจำนวนเต็มไม่ติดลบ
+    // ปุ่ม "ขอปรึกษา" ยัง disabled อยู่เสมอในรอบนี้ (รอ BL-014) จึงยังไม่มีทางที่ช่องนี้จะถูกเปิดแสดงได้จริง — เตรียม logic ไว้ล่วงหน้าเท่านั้น
+    rowsBody.querySelectorAll(".requested-qty-field:not(.hidden) .requested-input").forEach((input) => {
+      const val = parseInt(input.value, 10);
+      const errorEl = input.closest(".requested-qty-field").querySelector(".field-error");
+      const invalid = input.value.trim() === "" || !Number.isFinite(val) || val < 0;
+      if (errorEl) errorEl.style.display = invalid ? "block" : "none";
+      if (invalid) allValid = false;
+    });
     submitBtn.disabled = !allValid;
   }
 
@@ -245,6 +258,14 @@
             <input type="text" inputmode="numeric" class="numeric balance-input" value="0">
             <div class="field-error" style="display:none;">กรอกยอดคงเหลือเป็นจำนวนเต็มไม่ติดลบ</div>
           </td>
+          <td data-label="ไม่เห็นด้วยกับยอดแนะนำ?">
+            <button class="btn btn-secondary btn-consult" type="button" disabled title="ยังไม่เชื่อมช่องทางแจ้งเตือน LINE OA จริง (รอ BL-014)">ขอปรึกษา</button>
+            <div class="requested-qty-field hidden" style="margin-top:var(--space-2);">
+              <label class="text-secondary" style="font-size:0.85em;">ยอดที่ต้องการขอเบิกจริง</label>
+              <input type="text" inputmode="numeric" class="numeric requested-input">
+              <div class="field-error" style="display:none;">กรอกยอดขอเบิกเป็นจำนวนเต็มไม่ติดลบ</div>
+            </div>
+          </td>
         </tr>`).join("");
 
       rowsBody.querySelectorAll("tr[data-drug-item-id]").forEach((row) => {
@@ -253,6 +274,13 @@
           recomputeSuggested(row);
           checkFormValid();
         });
+        // FR-1.1b (เพิ่ม 20260915): กด "ขอปรึกษา" เปิดช่องกรอกยอดที่ต้องการขอเบิกจริงของรายการนั้น — ปุ่มยัง disabled อยู่เสมอในรอบนี้ (รอ BL-014)
+        // จึงไม่มีทาง event นี้ถูก trigger ได้จริงตอนนี้ เตรียม handler ไว้ล่วงหน้าเพื่อให้เปิดใช้งานปุ่มได้ทันทีในอนาคตโดยไม่ต้องแก้ logic เพิ่ม
+        row.querySelector(".btn-consult").addEventListener("click", () => {
+          row.querySelector(".requested-qty-field").classList.remove("hidden");
+          checkFormValid();
+        });
+        row.querySelector(".requested-input").addEventListener("input", checkFormValid);
       });
       checkFormValid();
     } catch (err) {
@@ -283,9 +311,17 @@
         const drugItemId = row.dataset.drugItemId;
         const threshold = thresholdMap[drugItemId];
         const balance = parseInt(row.querySelector(".balance-input").value, 10);
+        const suggestedQuantity = threshold === undefined ? 0 : Math.max(threshold - balance, 0);
+        // FR-1.1c (เพิ่ม 20260915): ยอดขอเบิกเท่ากับยอดแนะนำเบิกเสมอ เว้นแต่กรอกยอดที่ต้องการขอเบิกจริงผ่าน "ขอปรึกษา" (FR-1.1b)
+        // ปุ่มยัง disabled อยู่เสมอในรอบนี้ (รอ BL-014) — ช่องนี้จึงว่าง/ซ่อนอยู่เสมอในทางปฏิบัติ ทำให้ requestedQuantity == suggestedQuantity ทุกครั้ง
+        const requestedInput = row.querySelector(".requested-input");
+        const requestedVisible = !row.querySelector(".requested-qty-field").classList.contains("hidden");
+        const requestedVal = requestedVisible ? parseInt(requestedInput.value, 10) : NaN;
+        const requestedQuantity = Number.isFinite(requestedVal) ? requestedVal : suggestedQuantity;
         return {
           drugItemId,
-          suggestedQuantity: threshold === undefined ? 0 : Math.max(threshold - balance, 0),
+          suggestedQuantity,
+          requestedQuantity,
           selfReportedBalance: balance
         };
       });
@@ -317,6 +353,7 @@
         batch.set(lineRef, {
           drugItemId: item.drugItemId,
           suggestedQuantity: item.suggestedQuantity,
+          requestedQuantity: item.requestedQuantity,
           selfReportedBalance: item.selfReportedBalance,
           pharmacistConfirmedBalance: null,
           approvedQuantity: null

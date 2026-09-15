@@ -63,11 +63,12 @@
               <th>ประเภท</th>
               <th>วันที่ยื่นคำขอ</th>
               <th>สถานะ</th>
+              <th>ผู้ช่วย AI</th>
               <th>การดำเนินการ</th>
             </tr>
           </thead>
           <tbody id="requisition-rows">
-            <tr class="state-row"><td colspan="6">กำลังโหลดข้อมูล…</td></tr>
+            <tr class="state-row"><td colspan="7">กำลังโหลดข้อมูล…</td></tr>
           </tbody>
         </table>
       </div>
@@ -128,7 +129,16 @@
   }
 
   function renderState(message) {
-    rowsBody.innerHTML = `<tr class="state-row"><td colspan="6">${message}</td></tr>`;
+    rowsBody.innerHTML = `<tr class="state-row"><td colspan="7">${message}</td></tr>`;
+  }
+
+  // ผู้ช่วย AI (FT-036/BL-047) — เกณฑ์ trigger badge hardcode ไปก่อน (ยังไม่มีหน้า Admin ตั้งค่าจริง, FT-034)
+  const AI_TRIGGER_THRESHOLD_PERCENT = 25;
+
+  function deviationPercent(requested, suggested) {
+    if (!Number.isFinite(requested) || !Number.isFinite(suggested)) return 0;
+    if (suggested === 0) return requested === 0 ? 0 : 100;
+    return Math.abs(requested - suggested) / suggested * 100;
   }
 
   async function loadQueue() {
@@ -153,11 +163,28 @@
           return bt - at;
         });
 
+      // เช็คว่าคำขอไหนมีรายการยาเบี่ยงเบนเกินเกณฑ์บ้าง (FR-8.4) — ต้องอ่าน lineItems เพิ่มต่อคำขอ
+      // ยอมรับ read เพิ่มขึ้นเพราะ scale เล็ก (29 หน่วย/เดือน) — ไม่ block การแสดงรายการหลักถ้าจุดนี้ผิดพลาด
+      const aiExceedsMap = new Map();
+      await Promise.all(rows.map(async (req) => {
+        try {
+          const lineSnap = await getDocs(collection(db, "requisitions", req.id, "lineItems"));
+          const exceeds = lineSnap.docs.some((d) => {
+            const li = d.data();
+            return deviationPercent(li.requestedQuantity, li.suggestedQuantity) > AI_TRIGGER_THRESHOLD_PERCENT;
+          });
+          aiExceedsMap.set(req.id, exceeds);
+        } catch (err) {
+          console.error(`โหลด lineItems ของ ${req.id} เพื่อเช็คเกณฑ์ผู้ช่วย AI ไม่สำเร็จ:`, err);
+        }
+      }));
+
       rowsBody.innerHTML = rows.map((req) => {
         const typeLabel = TYPE_LABEL[req.type] || { text: req.type, badge: "" };
         const unitName = unitNameMap.get(req.unitId) || req.unitId;
         const submittedAt = req.confirmedByStaffAt || req.createdAt;
         const rowClass = req.type === "emergency" ? ' class="row-alert"' : "";
+        const aiBadge = aiExceedsMap.get(req.id) ? '<span class="badge badge-warning">เบี่ยงเบนมาก</span>' : "—";
         return `
           <tr${rowClass}>
             <td data-label="รหัสคำขอ">${req.requisitionCode || req.id}</td>
@@ -165,6 +192,7 @@
             <td data-label="ประเภท">${badgeSpan(typeLabel)}</td>
             <td data-label="วันที่ยื่นคำขอ">${formatThaiDate(submittedAt)}</td>
             <td data-label="สถานะ"><span class="badge badge-info">รอการอนุมัติระดับ 1</span></td>
+            <td data-label="ผู้ช่วย AI">${aiBadge}</td>
             <td data-label="การดำเนินการ"><a class="btn-text" href="approval-review-level1.html?id=${encodeURIComponent(req.id)}">พิจารณา</a></td>
           </tr>`;
       }).join("");

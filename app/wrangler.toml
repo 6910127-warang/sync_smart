@@ -1,0 +1,16 @@
+# SmartSync — Cloudflare Worker config (เพิ่ม 20260915, FT-036/BL-047)
+# อยู่ใน app/ เพราะ Cloudflare project ตั้ง Root directory = "/app" (ดู README.md หัวข้อ "Hosting — ย้ายไป
+# Cloudflare") — Deploy command "npx wrangler deploy" รันด้วย working directory เป็น app/ อยู่แล้ว จึงต้องหา
+# wrangler.toml/_worker.js จากตรงนี้โดยตรง ไม่ใช่ที่ root ของ repo
+#
+# สำคัญ: "name" ด้านล่างต้องตรงกับชื่อโปรเจกต์จริงบน Cloudflare dashboard ก่อน push — คาดว่าคือ "sync-smart"
+# จาก URL ปัจจุบัน sync-smart.thiphbuymepharmacy.workers.dev แต่ยังไม่ได้ยืนยันตรงกับ dashboard จริง
+# ถ้าไม่ตรง Cloudflare อาจสร้างโปรเจกต์ใหม่แยกต่างหากแทนที่จะ deploy ทับของเดิม — ตรวจสอบก่อน push เสมอ
+
+name = "sync-smart"
+main = "_worker.js"
+compatibility_date = "2024-09-23"
+
+[assets]
+directory = "."
+binding = "ASSETS"

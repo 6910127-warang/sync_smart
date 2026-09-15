@@ -136,6 +136,8 @@ service cloud.firestore {
           && request.resource.data.pharmacistConfirmedBalance == null
           && request.resource.data.approvedQuantity == null
           && request.resource.data.suggestedQuantity is int && request.resource.data.suggestedQuantity >= 0
+          // requestedQuantity (เพิ่ม 20260915, FR-1.1c) — เท่ากับ suggestedQuantity เสมอในรอบนี้ (ปุ่ม "ขอปรึกษา" ยัง disabled รอ BL-014)
+          && request.resource.data.requestedQuantity is int && request.resource.data.requestedQuantity >= 0
           && request.resource.data.selfReportedBalance is int && request.resource.data.selfReportedBalance >= 0;
 
         // เภสัชกรแก้ได้เฉพาะตอนพิจารณาระดับ 1 (approval-review-level1.html) และแก้ได้แค่ 2 field นี้เท่านั้น
